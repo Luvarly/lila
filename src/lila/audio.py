@@ -34,70 +34,53 @@ class SpeechDetector:
 
 
 class Event(NamedTuple):
-    kind: str  # "speech" | "pause" | "utterance" | "dropped"
+    kind: str  # "speech" | "pause" | "utterance"
     audio: bytes = b""
     early: bool = False  # utterance: nothing was said since the last pause, so its audio holds
 
 
 class UtteranceSegmenter:
-    """Pure logic: turns (frame, voiced) pairs into speech / pause / utterance / dropped events.
+    """Pure logic: turns (frame, voiced) pairs into speech / pause / utterance events.
 
-    "pause" comes after `early_ms` of silence in a confirmed utterance, with the audio so far,
-    so transcription can start before the utterance is known to be over.
+    "speech" comes as soon as an utterance starts, so even a one-word "yes" is heard; whether
+    it was words or a cough is up to the transcript. "pause" comes after `early_ms` of silence,
+    with the audio so far, so transcription can start before the utterance is known to be over.
     """
 
     def __init__(
-        self,
-        end_silence_ms: int = 700,
-        max_ms: int = 30_000,
-        confirm_ms: int = 400,
-        early_ms: int = 400,
+        self, end_silence_ms: int = 700, max_ms: int = 30_000, early_ms: int = 400
     ) -> None:
         self.end_silence_ms = end_silence_ms
         self.max_ms = max_ms
-        self.confirm_ms = confirm_ms
         self.early_ms = early_ms
         self._recent: deque[tuple[bytes, bool]] = deque(maxlen=START_WINDOW)
         self._frames: list[bytes] | None = None  # set while inside an utterance
-        self._voiced_ms = 0
         self._silence_ms = 0
-        self._confirmed = False
         self._paused = False  # a pause event went out and nothing was said since
 
     def process(self, frame: bytes, voiced: bool) -> list[Event]:
         if self._frames is None:
             self._recent.append((frame, voiced))
-            voiced_frames = sum(v for _, v in self._recent)
-            if voiced_frames < START_VOICED:
+            if sum(v for _, v in self._recent) < START_VOICED:
                 return []
             self._frames = [f for f, _ in self._recent]
             self._recent.clear()
-            self._voiced_ms = voiced_frames * FRAME_MS
             self._silence_ms = 0
-            self._confirmed = False
             self._paused = False
-            return []
+            return [Event("speech")]
         self._frames.append(frame)
         if voiced:
-            self._voiced_ms += FRAME_MS
             self._silence_ms = 0
             self._paused = False
         else:
             self._silence_ms += FRAME_MS
-        events = []
-        if not self._confirmed and self._voiced_ms >= self.confirm_ms:
-            self._confirmed = True
-            events.append(Event("speech"))
         if self._silence_ms >= self.end_silence_ms or len(self._frames) * FRAME_MS >= self.max_ms:
-            if self._confirmed:
-                events.append(Event("utterance", b"".join(self._frames), self._paused))
-            else:
-                events.append(Event("dropped"))
-            self._frames = None
-        elif self._confirmed and not self._paused and self._silence_ms >= self.early_ms:
+            audio, self._frames = b"".join(self._frames), None
+            return [Event("utterance", audio, self._paused)]
+        if not self._paused and self._silence_ms >= self.early_ms:
             self._paused = True
-            events.append(Event("pause", b"".join(self._frames)))
-        return events
+            return [Event("pause", b"".join(self._frames))]
+        return []
 
 
 class Microphone:

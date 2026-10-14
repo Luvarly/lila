@@ -30,9 +30,15 @@ def test_talking_again_after_a_pause_gives_a_new_pause():
     assert len(events[2].audio) > len(events[1].audio)
 
 
-def test_short_click_is_dropped():
-    events = feed(UtteranceSegmenter(), [True] * 7 + [False] * 40)
-    assert [e.kind for e in events] == ["dropped"]
+def test_one_short_word_is_an_utterance():
+    # "yes": about 240 ms of voice, used to be thrown away as too short
+    events = feed(UtteranceSegmenter(), [False] * 5 + [True] * 8 + [False] * 30)
+    assert [e.kind for e in events] == ["speech", "pause", "utterance"]
+    assert LOUD * 8 in events[2].audio
+
+
+def test_a_click_never_starts():
+    assert feed(UtteranceSegmenter(), [True] * 3 + [False] * 40) == []
 
 
 def test_scattered_noise_never_starts():
