@@ -13,7 +13,7 @@ from claude_agent_sdk import (
 from fakes import FakeClient, FakeSpeaker, FakeSpeech
 
 from lila import agent as agent_module
-from lila.agent import REPROMPT, VoiceAgent, describe_tool, parse_yes_no
+from lila.agent import REPROMPT, SORRY, VoiceAgent, describe_tool, parse_yes_no
 from lila.config import Settings
 
 PCM = b"\x00" * 960
@@ -117,6 +117,15 @@ async def test_progress_phrase_rules_and_one_fish_connection_per_reply():
         await settle()
         assert speech.spoken == ["Looking through the files.", "Found it.", "Reading a web page."]
         assert speech.calls == 1
+
+
+async def test_looking_at_the_screen_has_a_phrase_and_clipboard_is_silent():
+    async with running() as (agent, client, speech):
+        await agent.handle_text("what am I looking at")
+        client.push(tool("t1", "mcp__lila__screenshot"), tool("t2", "mcp__lila__clipboard"))
+        client.push(result())
+        await settle()
+        assert speech.spoken == ["Taking a look."]
 
 
 async def test_reply_socket_closes_when_idle_and_reopens(monkeypatch):
@@ -289,7 +298,7 @@ async def test_error_result_is_spoken():
         await agent.handle_text("hi")
         client.push(result(is_error=True, errors=["boom"]))
         await settle()
-        assert speech.spoken == ["Sorry, something went wrong there."]
+        assert speech.spoken == [SORRY]
 
 
 async def test_transcripts_are_handled_in_order_and_empty_ones_ignored():

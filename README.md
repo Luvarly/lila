@@ -6,6 +6,9 @@ A personal voice assistant. You talk, an agent works in a folder on your machine
 - **Speaking:** Fish Audio streaming text-to-speech (`s2.1-pro`). Speech starts before the answer is finished, and you can talk over it to interrupt.
 - **Doing:** the agent can read, search and change files and use the web. Tools that aren't pre-approved are asked about out loud; answer yes or no.
 - **Screen:** your transcript, the full answer and every tool call are printed. Code, commands and paths appear on screen and are never read aloud.
+- **Memory:** Lila remembers what's worth knowing about you between conversations, such as your name, the people and projects you mention and how you like things done. It's kept as plain Markdown files in `~/.lila/memory`, shared by every working folder, so you can read, edit or delete them any time. This is Claude Code's own memory feature, pointed at a folder of Lila's.
+- **Personality:** warm, quick and to the point, with a dry sense of humour. Tell it how you'd rather it be, and it remembers that too.
+- **Clipboard and screen:** say "what's this?" and Lila reads what you copied (text, an image or files). Say "what am I looking at?" and it takes a screenshot of your main screen. It only does either when you ask, and each use shows up on screen.
 
 ## Requirements
 
@@ -59,6 +62,7 @@ Lila reads `.env` from the current folder (or a parent folder). Real environment
 - **Fish usage** (speech-to-text and text-to-speech) is billed to your Fish account. A short pause mid-sentence costs one extra speech-to-text request.
 - **Claude usage** is billed to whatever Claude Code is signed in with. Lila prints which sign-in Claude Code will use at startup.
 - **If Claude Code stops**, Lila reconnects to the same conversation, up to three times in a row. Whatever Claude was doing at that moment is lost.
+- **Screenshots and clipboard contents go to Claude**, like everything else you say. Clear anything private before you ask.
 - When you quit with Ctrl+C, Lila prints the session id; `--resume <id>` continues that conversation.
 
 ## Tests

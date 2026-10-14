@@ -29,17 +29,31 @@ from claude_agent_sdk import (
 )
 
 from .config import Settings
+from .term import INDENT, LILA, YOU, ask_line, error, note, tool_line
 from .textfilter import SpeechFilter
+from .tools import TOOL_NAMES, lila_tools
 
 log = logging.getLogger("lila")
 
-INDENT = " " * 9
-GREETING = "Hi, I'm listening."
-SORRY = "Sorry, something went wrong there."
+GREETING = "Hey, it's Lila. Whenever you're ready."
+SORRY = "Hm, something went wrong on my end. Sorry about that."
 REPROMPT = "Sorry, was that a yes or a no?"
 FLUSH = ""  # in a job's text: say everything so far now (before a tool runs)
 INTERRUPT_TIMEOUT = 10.0
 IDLE_CLOSE = 15.0  # close a reply's Fish socket after this long without text; reopen for more
+MEMORY_DIR = "~/.lila/memory"  # Claude Code's own auto-memory, shared by every working folder
+
+PERSONALITY = """\
+# Who you are
+In this voice interface you are Lila, the user's personal assistant, powered by Claude. You live on their computer: you can work with their files and the web, look at what they've copied or at their screen when they ask, and remember things between conversations.
+
+Your character is dry, but kind-hearted: the friend with a deadpan sense of humour who quietly has your back.
+- Your humour is understated: a wry aside, an understatement, a bit of gentle teasing. At most one light touch per answer, and none when the user is stressed, in a hurry or dealing with something serious. Never at their expense.
+- Under the dryness, you care. Notice how they're doing. Be glad for their wins without gushing, and be patient and warm when something goes wrong; a small "that's annoying, let's fix it" beats a pep talk.
+- Be straightforward: plain words, short answers, an honest opinion when asked, and say so when you're not sure. No filler such as "Great question", no fake cheer, no repeating the question back.
+- Pay attention to the person. When you learn something that will help later (their name, the people and projects they mention, what they like, how they want things done), save it to memory quietly and use it naturally, the way a friend remembers.
+
+"""  # noqa: E501
 
 SPEECH_PROMPT = """\
 # Voice conversation
@@ -63,7 +77,8 @@ _PROGRESS = {
     "WebSearch": "Searching the web.",
     "WebFetch": "Reading a web page.",
     **dict.fromkeys(["Task", "Agent"], "Handing part of this to a helper."),
-    **dict.fromkeys(["TodoWrite", "AskUserQuestion"], None),
+    **dict.fromkeys(["TodoWrite", "AskUserQuestion", "mcp__lila__clipboard"], None),
+    "mcp__lila__screenshot": "Taking a look.",
 }
 
 _NEGATIVE = [
@@ -76,13 +91,18 @@ _POSITIVE = [
     "ja", "jawel", "prima", "doe maar", "goed", "akkoord",
 ]  # fmt: skip
 
+_ALWAYS_ALLOWED = [*TOOL_NAMES, f"Write({MEMORY_DIR}/**)", f"Edit({MEMORY_DIR}/**)"]
+
 
 def build_options(settings: Settings, can_use_tool: Callable | None) -> ClaudeAgentOptions:
-    append = SPEECH_PROMPT + (EXPRESSIVE_PROMPT if settings.expressive else "")
+    append = PERSONALITY + SPEECH_PROMPT + (EXPRESSIVE_PROMPT if settings.expressive else "")
     return ClaudeAgentOptions(
         system_prompt={"type": "preset", "preset": "claude_code", "append": append},
         include_partial_messages=True,
-        allowed_tools=settings.allowed_tools,
+        # Lila's own tools and its memory folder never need a spoken yes.
+        allowed_tools=[*settings.allowed_tools, *_ALWAYS_ALLOWED],
+        mcp_servers={"lila": lila_tools()},
+        settings=json.dumps({"autoMemoryDirectory": MEMORY_DIR}),
         permission_mode="default" if settings.voice_approvals else "dontAsk",
         can_use_tool=can_use_tool if settings.voice_approvals else None,
         cwd=settings.workdir,
@@ -148,6 +168,8 @@ def screen_summary(tool_input: dict[str, Any]) -> str:
     for key in ("command", "file_path", "notebook_path", "url", "pattern", "query", "path"):
         if tool_input.get(key):
             return str(tool_input[key])[:200]
+    if not tool_input:
+        return ""
     return json.dumps(tool_input, separators=(",", ":"), ensure_ascii=False, default=str)[:120]
 
 
@@ -209,7 +231,7 @@ class VoiceAgent:
         self._last_progress: str | None = None
         self._tasks: set[asyncio.Task] = set()
 
-        self._streaming = False  # a "claude > " line is open on screen
+        self._streaming = False  # a "lila ›" line is open on screen
         self._listening = False  # the "(listening…)" indicator is on screen
         self._t_query: float | None = None
         self._t_first_delta: float | None = None
@@ -239,7 +261,7 @@ class VoiceAgent:
         if on == self._listening or self._streaming or not sys.stdout.isatty():
             return
         self._listening = on
-        sys.stdout.write(f"{INDENT}(listening…)" if on else "\r" + " " * 30 + "\r")
+        sys.stdout.write(note("listening…") if on else "\r" + " " * 30 + "\r")
         sys.stdout.flush()
 
     # ---- input ------------------------------------------------------------------------------
@@ -290,7 +312,7 @@ class VoiceAgent:
                     text = await transcript
                 except Exception as e:
                     self.show_listening(False)
-                    self._println(f"{INDENT}(speech recognition failed: {e})")
+                    self._println(error(f"(speech recognition failed: {e})"))
                     continue
                 log.debug(
                     "end of speech -> transcript: %.0f ms for %.1f s of audio",
@@ -307,7 +329,7 @@ class VoiceAgent:
                     self.speaker.resume()
 
     async def handle_text(self, text: str) -> None:
-        self._println(f"you    > {text}")
+        self._println(YOU + text)
         if self.approval_pending:
             self._permission.set_result(text)
             return
@@ -315,7 +337,7 @@ class VoiceAgent:
             await self._barge_in()
         elif self.turn_active:
             self._queued.append(text)
-            self._println(f"{INDENT}(noted, I'll get to it after this)")
+            self._println(note("(noted, I'll get to it after this)"))
             return
         await self._begin_turn(text)
 
@@ -334,7 +356,7 @@ class VoiceAgent:
         try:
             await self.client.query(text)
         except Exception as e:
-            self._println(f"{INDENT}(couldn't send that to Claude Code: {e})")
+            self._println(error(f"(couldn't send that to Claude Code: {e})"))
             self.turn_active = False
             self.turn_done.set()
 
@@ -359,7 +381,7 @@ class VoiceAgent:
         if not self.turn_active:
             return
         self.muted = True
-        self._println(f"{INDENT}(interrupted)")
+        self._println(note("(interrupted)"))
         try:
             await self.client.interrupt()
         except Exception as e:
@@ -392,7 +414,7 @@ class VoiceAgent:
             await self._quiet.wait()
             if self.muted:
                 return PermissionResultDeny(message="The user interrupted.", interrupt=True)
-            self._println(f"{INDENT}? wants to use {tool_name}: {screen_summary(tool_input)}")
+            self._println(ask_line(tool_name, screen_summary(tool_input)))
             question = f"I'd like to {describe_tool(tool_name, tool_input)}. Is that okay?"
             for prompt in (question, REPROMPT):
                 self._permission = asyncio.get_running_loop().create_future()
@@ -402,7 +424,7 @@ class VoiceAgent:
                         self._permission, self.settings.approval_timeout
                     )
                 except asyncio.TimeoutError:
-                    self._println(f"{INDENT}(no answer, so that's a no)")
+                    self._println(note("(no answer, so that's a no)"))
                     return PermissionResultDeny(message="The user did not answer in time.")
                 finally:
                     self._permission = None
@@ -423,7 +445,7 @@ class VoiceAgent:
             reason = "the stream ended"
         except Exception as e:
             reason = str(e) or type(e).__name__
-        self._println(f"{INDENT}(lost the connection to Claude Code: {reason})")
+        self._println(error(f"(lost the connection to Claude Code: {reason})"))
 
     def _handle_message(self, message: Any) -> None:
         ignore = self.muted or self._stale_results > 0
@@ -462,14 +484,14 @@ class VoiceAgent:
                 "claude: %.1f s, $%.4f", message.duration_ms / 1000, message.total_cost_usd or 0
             )
             if message.is_error and not self.muted:
-                self._println(f"{INDENT}(error: {'; '.join(message.errors or [message.subtype])})")
+                self._println(error(f"(error: {'; '.join(message.errors or [message.subtype])})"))
                 self.say(SORRY)
             self._end_turn()
 
     def _open_block(self) -> None:
         self._close_block()
         self._filter = SpeechFilter(self.settings.expressive)
-        self._write("claude > ")
+        self._write(LILA)
         self._streaming = True
 
     def _on_text(self, text: str) -> None:
@@ -481,7 +503,7 @@ class VoiceAgent:
             if self._t_query is not None:
                 ms = (self._t_first_delta - self._t_query) * 1000
                 log.debug("transcript -> first text: %.0f ms", ms)
-        sys.stdout.write(text)
+        sys.stdout.write(text.replace("\n", "\n" + INDENT))  # keep the answer in its column
         sys.stdout.flush()
         self._turn_put(self._filter.feed(text))
         self._spoke_since_tool = True
@@ -496,12 +518,12 @@ class VoiceAgent:
             self._write("\n")
 
     def _on_tool(self, block: ToolUseBlock) -> None:
-        self._println(f"{INDENT}· {block.name} {screen_summary(block.input)}")
+        self._println(tool_line(block.name, screen_summary(block.input)))
         phrase = _PROGRESS.get(block.name, "Working on it.")
         if (
             phrase
             and not self._spoke_since_tool
-            and block.name in self.settings.allowed_tools
+            and (block.name in self.settings.allowed_tools or block.name in TOOL_NAMES)
             and phrase != self._last_progress
         ):
             self._last_progress = phrase
@@ -565,7 +587,7 @@ class VoiceAgent:
                         log.debug("first text -> first audio: %.0f ms", ms)
                     self.speaker.play(fmt.rate, fmt.channels, pcm)
             except Exception as e:
-                self._println(f"{INDENT}(error: text-to-speech failed: {e})")
+                self._println(error(f"(error: text-to-speech failed: {e})"))
             self.speaker.drain()
 
     async def _texts(self, job: _Job, first: str) -> AsyncIterator[str]:

@@ -15,7 +15,7 @@ import sounddevice as sd
 from claude_agent_sdk import CanUseToolShadowedWarning, ClaudeSDKClient
 from dotenv import find_dotenv, load_dotenv
 
-from .agent import GREETING, INDENT, VoiceAgent, build_options
+from .agent import GREETING, MEMORY_DIR, VoiceAgent, build_options
 from .audio import (
     FRAME_SAMPLES,
     RATE,
@@ -27,6 +27,7 @@ from .audio import (
 )
 from .config import Settings, parse_args
 from .speech import FishSpeech
+from .term import LogFormatter, dim, error, note, paint
 
 MAX_RECONNECTS = 3
 RECONNECT_DELAY = 2.0  # seconds, times the attempt number
@@ -104,23 +105,27 @@ async def run(settings: Settings) -> None:
                             asyncio.create_task(agent.run_speech()),
                             asyncio.create_task(listen(mic, agent, settings)),
                         ]
-                        print("Ready. Just start talking. Ctrl+C to quit.")
+                        print(
+                            f"  {paint('●', '32')} Ready. Just start talking."
+                            + dim("  Ctrl+C to quit.")
+                            + "\n"
+                        )
                         if settings.greeting:
                             agent.say(GREETING)
                     else:
-                        print(f"{INDENT}(reconnected)")
+                        print(note("(reconnected)"))
                     await converse(client, agent, background)
             except Exception as e:
                 if mic is None or any(t.done() for t in background):
                     raise  # never got going, or the mic or speech side broke
-                print(f"{INDENT}(Claude Code stopped: {e})")
+                print(error(f"(Claude Code stopped: {e})"))
             if time.monotonic() - connected_at > STABLE_CONNECTION:
                 failures = 0
             failures += 1
             if failures > MAX_RECONNECTS:
-                print(f"{INDENT}(can't reach Claude Code, giving up)")
+                print(error("(can't reach Claude Code, giving up)"))
                 return
-            print(f"{INDENT}(reconnecting to Claude Code…)")
+            print(note("(reconnecting to Claude Code…)"))
             await asyncio.sleep(RECONNECT_DELAY * failures)
     finally:
         for task in background:
@@ -129,10 +134,12 @@ async def run(settings: Settings) -> None:
         if mic is not None:
             mic.close()
         speaker.close()
+        print()
         if agent.session_id:
-            print()
-            print(f"Session {agent.session_id} (continue it with --resume {agent.session_id})")
-        print("Bye.")
+            print(
+                dim(f"  Session {agent.session_id}  ·  continue with --resume {agent.session_id}")
+            )
+        print(f"  {paint('lila', '1;35')} {dim('· bye for now.')}")
 
 
 def mic_test(settings: Settings) -> None:
@@ -152,9 +159,10 @@ def mic_test(settings: Settings) -> None:
             frame = bytes(data)
             level = rms(frame)
             levels.append(level)
-            marker = "speech" if detector.is_voiced(frame, settings.speech_rms) else "      "
-            bar = "#" * min(40, int(level / 50))
-            print(f"\r{level:6.0f} {marker} {bar:<40}", end="", flush=True)
+            voiced = detector.is_voiced(frame, settings.speech_rms)
+            marker = paint("speech", "1;32") if voiced else "      "
+            bar = paint(f"{'█' * min(40, int(level / 50)):<40}", "32" if voiced else "2")
+            print(f"\r{level:6.0f} {marker} {bar}", end="", flush=True)
     quiet = sorted(levels)[len(levels) // 5]
     loudest = max(levels)
     print(f"\n\nLoudest level: {loudest:.0f}. Quiet room: about {quiet:.0f}.")
@@ -165,10 +173,29 @@ def mic_test(settings: Settings) -> None:
     )
 
 
+def banner(settings: Settings) -> None:
+    model = settings.claude_model or "Claude Code's default"
+    rows = [
+        ("folder", settings.workdir),
+        ("voice", f"{settings.voice_id or 'Fish default'} · {settings.tts_model}"),
+        ("hearing", settings.stt_model + (f" · {settings.language}" if settings.language else "")),
+        ("claude", model + (f" · {settings.effort} effort" if settings.effort else "")),
+        ("sign-in", claude_sign_in()),
+        ("memory", MEMORY_DIR),
+    ]
+    print(f"\n  {paint('lila', '1;35')} {dim('· your voice assistant, powered by Claude')}\n")
+    for label, value in rows:
+        print(f"  {dim(f'{label:<8}')} {value}")
+    print()
+
+
 def main(argv: list[str] | None = None) -> None:
     load_dotenv(find_dotenv(usecwd=True))
+    sys.stdout.reconfigure(errors="replace")  # piped output on Windows can't encode "●" and co.
     settings = parse_args(argv)
-    logging.basicConfig(format="%(levelname)s %(name)s: %(message)s")
+    handler = logging.StreamHandler()
+    handler.setFormatter(LogFormatter())
+    logging.basicConfig(handlers=[handler])
     logging.getLogger("lila").setLevel(logging.DEBUG if settings.debug else logging.WARNING)
 
     if settings.list_devices:
@@ -183,10 +210,7 @@ def main(argv: list[str] | None = None) -> None:
     if settings.ignore_api_key:
         os.environ.pop("ANTHROPIC_API_KEY", None)
 
-    print(f"Working folder: {settings.workdir}")
-    print(f"Voice: {settings.voice_id or 'default'} ({settings.tts_model})")
-    print(f"Hearing: {settings.stt_model}")
-    print(f"Claude sign-in: {claude_sign_in()}")
+    banner(settings)
     with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(run(settings))
 
