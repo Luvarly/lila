@@ -4,7 +4,7 @@ A personal voice assistant. You talk, an agent works in a folder on your machine
 
 - **Hearing:** Fish Audio speech-to-text (`transcribe-1-pro`). Input is turn-based: you speak, pause, and what you said is transcribed.
 - **Speaking:** Fish Audio streaming text-to-speech (`s2.1-pro`). Speech starts before the answer is finished, and you can talk over it to interrupt.
-- **Doing:** the agent can read, search and change files and use the web. Tools that aren't pre-approved are asked about out loud; answer yes or no.
+- **Doing:** the agent can read, search and change files and use the web. Claude Code's auto mode decides which actions are safe, so Lila rarely asks. Whatever it does ask about, or every tool that isn't pre-approved with `--no-auto-mode`, is asked out loud; answer yes or no.
 - **Background work:** longer jobs, like research or a bigger change, go to a background helper, so you can keep talking. Lila tells you the result when it's done. If the helper needs approval, Lila asks out loud: "My helper would like to…".
 - **Screen:** your transcript, the full answer and every tool call are printed. Code, commands and paths appear on screen and are never read aloud.
 - **Memory:** Lila remembers what's worth knowing about you between conversations, such as your name, the people and projects you mention and how you like things done. It's kept as plain Markdown files in `~/.lila/memory`, shared by every working folder, so you can read, edit or delete them any time. This is Claude Code's own memory feature, pointed at a folder of Lila's.
@@ -46,6 +46,7 @@ Lila reads `.env` from the current folder (or a parent folder). Real environment
 | `--model` | `CLAUDE_MODEL` | Claude Code's default (e.g. `opus`, `sonnet`, `haiku`) |
 | `--effort` | `CLAUDE_EFFORT` | Claude Code's default (`low`, `medium`, `high`, `xhigh`, `max`) |
 | `--allowed-tools` | `LILA_ALLOWED_TOOLS` | `Read,Glob,Grep,WebSearch,WebFetch` |
+| `--no-auto-mode` | `LILA_AUTO_MODE=0` | auto mode on (off = ask about every tool that isn't pre-allowed) |
 | `--no-voice-approvals` | `LILA_VOICE_APPROVALS=0` | approvals on (off = deny anything not pre-allowed) |
 | `--no-barge-in` | `LILA_BARGE_IN=0` | barge-in on (off = never listen while speaking) |
 | `--speech-rms` | `LILA_SPEECH_RMS` | `300` |

@@ -48,3 +48,10 @@ def test_options_add_personality_memory_and_tools():
     assert json.loads(options.settings) == {"autoMemoryDirectory": MEMORY_DIR}
     assert options.mcp_servers["lila"]["alwaysLoad"] is True
     assert {*tools.TOOL_NAMES, f"Write({MEMORY_DIR}/**)", "Read"} <= set(options.allowed_tools)
+
+
+def test_options_use_auto_mode_unless_turned_off():
+    assert build_options(Settings(), None).permission_mode == "auto"
+    assert build_options(Settings(auto_mode=False), None).permission_mode == "default"
+    off = Settings(auto_mode=False, voice_approvals=False)
+    assert build_options(off, None).permission_mode == "dontAsk"

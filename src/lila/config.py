@@ -25,6 +25,7 @@ class Settings:
     effort: str | None = None
     allowed_tools: list[str] = field(default_factory=lambda: DEFAULT_TOOLS.split(","))
     voice_approvals: bool = True
+    auto_mode: bool = True
     barge_in: bool = True
     speech_rms: int = 300
     barge_in_rms: int = 1500
@@ -77,6 +78,12 @@ def parse_args(argv: list[str] | None = None, env: Mapping[str, str] = os.enviro
         dest="voice_approvals",
         action="store_false",
         default=_on(e("LILA_VOICE_APPROVALS"), True),
+    )
+    p.add_argument(
+        "--no-auto-mode",
+        dest="auto_mode",
+        action="store_false",
+        default=_on(e("LILA_AUTO_MODE"), True),
     )
     p.add_argument(
         "--no-barge-in",

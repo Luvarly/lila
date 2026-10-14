@@ -110,7 +110,10 @@ def build_options(settings: Settings, can_use_tool: Callable | None) -> ClaudeAg
         allowed_tools=[*settings.allowed_tools, *_ALWAYS_ALLOWED],
         mcp_servers={"lila": lila_tools()},
         settings=json.dumps({"autoMemoryDirectory": MEMORY_DIR}),
-        permission_mode="default" if settings.voice_approvals else "dontAsk",
+        # Auto: Claude Code's safety classifier decides most tool calls, so Lila rarely has to ask.
+        permission_mode=(
+            "auto" if settings.auto_mode else "default" if settings.voice_approvals else "dontAsk"
+        ),
         can_use_tool=can_use_tool if settings.voice_approvals else None,
         cwd=settings.workdir,
         model=settings.claude_model,
