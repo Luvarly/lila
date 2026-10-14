@@ -59,7 +59,8 @@ async def listen(mic: Microphone, agent: VoiceAgent, settings: Settings) -> None
         playing = agent.speaker.is_playing
         if playing and not settings.barge_in and not agent.approval_pending:
             continue  # half-duplex: never hear our own voice
-        # Stays high while she's paused mid-speech, or the noise that paused her keeps the utterance open.
+        # Stays high while she's paused mid-speech, or the noise that paused her keeps the
+        # utterance open.
         speaking = agent.speaker.is_speaking
         threshold = settings.barge_in_rms if speaking else settings.speech_rms
         need = START_VOICED_OVER_SPEECH if speaking else START_VOICED

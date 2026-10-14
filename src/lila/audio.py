@@ -147,7 +147,8 @@ class Speaker:
     def is_speaking(self) -> bool:
         """Like is_playing, but still true while paused with speech held back."""
         with self._lock:
-            return bool(self._buf) or (not self._paused and time.monotonic() - self._last_audio < 0.3)
+            recent = time.monotonic() - self._last_audio < 0.3
+            return bool(self._buf) or (not self._paused and recent)
 
     def play(self, rate: int, channels: int, pcm: bytes) -> None:
         if (rate, channels) != self._format:
