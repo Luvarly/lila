@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>lila</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%230a0612' stroke='%23c9a7ff' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4.5' fill='%23efe2ff'/%3E%3C/svg%3E">
+<link rel="preload" href="saira.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face {
+  font-family: "Saira";
+  src: url("saira.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 50% 125%;
+  font-display: swap;
+}
+:root {
+  --ground: #0a0612;
+  --rule: rgb(201 167 255 / 0.13);
+  --rule-strong: rgb(201 167 255 / 0.3);
+  --lilac: #c9a7ff;
+  --lilac-hi: #efe2ff;
+  --violet: #a98bf0;
+  --you: #8fb4ff;
+  --you-ink: #cddbff;
+  --amber: #ffb84d;
+  --mint: #7fe0bd;
+  --coral: #ff8794;
+  --ink: #f2ebff;
+  --ink-2: #bdafdc;
+  --ink-3: #9686bd;
+  --accent: var(--ink-3);
+  --sans: "Saira", system-ui, sans-serif;
+  --mono: "Cascadia Mono", "Cascadia Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --gutter: clamp(1rem, 2.2vw, 2rem);
+  color-scheme: dark;
+}
+body[data-state="listening"] { --accent: var(--lilac); }
+body[data-state="hearing"] { --accent: var(--you); }
+body[data-state="thinking"] { --accent: var(--violet); }
+body[data-state="speaking"] { --accent: var(--lilac-hi); }
+body[data-state="asking"] { --accent: var(--amber); }
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--ground); }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background:
+    radial-gradient(ellipse 48% 58% at 50% 46%, rgb(124 82 214 / 0.14), transparent 72%),
+    var(--ground);
+  color: var(--ink);
+  font: 400 1rem/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: rgb(201 167 255 / 0.32); color: #fff; }
+* { scrollbar-width: thin; scrollbar-color: rgb(201 167 255 / 0.22) transparent; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: rgb(201 167 255 / 0.22); border-radius: 3px; }
+:focus-visible { outline: 1.5px solid var(--lilac); outline-offset: 3px; border-radius: 3px; }
+.label, h2, dt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-stretch: 75%;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.num { font-variant-numeric: tabular-nums; font-stretch: 112%; }
+
+/* ---- header ------------------------------------------------------------------------- */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  padding: 0.85rem var(--gutter);
+  border-bottom: 1px solid var(--rule);
+}
+.brand { display: flex; align-items: center; gap: 1rem; }
+.wordmark {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 600;
+  font-stretch: 125%;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--lilac-hi);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0.7rem 0.28rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--ink-3);
+  transition: color 0.4s;
+}
+.link i { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
+.link span { font-size: 0.72rem; }
+body[data-link="live"] .link { color: var(--mint); }
+body[data-link="live"] .link i { animation: beat 2.4s ease-in-out infinite; }
+body[data-link="offline"] .link { color: var(--coral); }
+.meta { display: flex; flex-wrap: wrap; gap: 0.5rem clamp(1.25rem, 2.6vw, 2.5rem); margin: 0 0 0 auto; }
+.meta div { display: grid; gap: 0.05rem; min-width: 0; }
+.meta dd {
+  margin: 0;
+  max-width: 24ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+/* ---- layout ------------------------------------------------------------------------- */
+main {
+  display: grid;
+  grid-template-columns: minmax(17rem, 1fr) minmax(0, 1.8fr) minmax(17rem, 1fr);
+  grid-template-areas: "talk core work";
+  min-height: 0;
+}
+.core {
+  grid-area: core;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  gap: clamp(0.4rem, 1.2vh, 1rem);
+  min-height: 0;
+  padding: clamp(0.5rem, 1.4vh, 1.25rem) var(--gutter);
+}
+.talk, .work {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.25rem var(--gutter) 1rem;
+}
+.talk { grid-area: talk; border-right: 1px solid var(--rule); }
+.work { grid-area: work; border-left: 1px solid var(--rule); }
+h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 0.85rem;
+}
+h2 .count { letter-spacing: 0.04em; font-stretch: 100%; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+ol, ul { list-style: none; margin: 0; padding: 0; }
+.empty { color: var(--ink-3); font-size: 0.92rem; line-height: 1.5; max-width: 34ch; }
+
+/* ---- the reactor -------------------------------------------------------------------- */
+.reactor {
+  position: relative;
+  width: min(100%, 26rem);
+  aspect-ratio: 1;
+  container-type: inline-size;
+}
+.reactor canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.heart {
+  position: absolute;
+  inset: 31%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 2.2cqi;
+  text-align: center;
+}
+.state {
+  margin: 0;
+  font-size: clamp(1.35rem, 7.6cqi, 3.5rem);
+  font-weight: 500;
+  font-stretch: 108%;
+  line-height: 1;
+  letter-spacing: -0.005em;
+  color: color-mix(in oklab, var(--accent) 55%, white);
+  transition: color 0.45s;
+  white-space: nowrap;
+}
+.state.shift { animation: shift 0.55s cubic-bezier(0.16, 1, 0.3, 1); 
+}
+.detail {
+  margin: 0;
+  max-width: 22ch;
+  min-height: 2.6em;
+  font-size: clamp(0.78rem, 2.5cqi, 1.05rem);
+  line-height: 1.3;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.below { width: min(100%, 38rem); min-height: 6.25rem; display: grid; align-content: start; }
+
+.ctx-head { display: flex; align-items: baseline; gap: 0.75rem; margin: 0 0 0.55rem; }
+.ctx-pct { font-size: 1.45rem; font-weight: 500; line-height: 1; color: var(--ink); }
+.ctx-of { font-size: 0.85rem; color: var(--ink-2); }
+.parts { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; }
+.parts li { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; color: var(--ink-2); white-space: nowrap; }
+.parts i { width: 0.6rem; height: 0.6rem; border-radius: 2px; background: var(--c); }
+.parts i.reserve { background: repeating-linear-gradient(135deg, #8b7bb8 0 1.5px, transparent 1.5px 3.5px); outline: 1px solid #8b7bb8; outline-offset: -1px; }
+.parts .num { color: var(--ink-3); font-size: 0.78rem; }
+
+.ask {
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0, 1fr);
+  gap: 0.2rem 0.85rem;
+  padding: 0.75rem 0.15rem 0.8rem;
+  border-block: 1px solid rgb(255 184 77 / 0.55);
+  animation: rise 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ask > svg { width: 1.3rem; height: 1.3rem; margin-top: 0.15rem; color: var(--amber); }
+.ask .q {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.4;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ask code {
+  display: block;
+  margin-top: 0.45rem;
+  font: 0.82rem/1.45 var(--mono);
+  color: #ffdcab;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- conversation ------------------------------------------------------------------- */
+#talk {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 0 0.4rem 0.25rem 0;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 2.75rem);
+}
+#talk > :first-child { margin-top: auto; }
+.say { display: grid; gap: 0.3rem; }
+.say .label { color: var(--lilac); }
+.say.you .label { color: var(--you); }
+.say p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.say p:empty { display: none; }
+.say p + p { margin-top: 0.55rem; }
+.say.lila p { font-size: clamp(1.05rem, 0.75rem + 0.55vw, 1.32rem); line-height: 1.5; color: var(--ink); }
+.say.you p { font-size: 1.02rem; color: var(--you-ink); }
+.say.past p { font-size: 0.95rem; color: var(--ink-2); }
+.say.you.past p { color: #a7b6e0; }
+.say.past .label { opacity: 0.75; }
+.say.live p:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.5ch;
+  height: 1.05em;
+  margin-left: 0.2ch;
+  vertical-align: -0.16em;
+  background: var(--lilac);
+  animation: caret 1.05s steps(2, jump-none) infinite;
+}
+
+/* ---- helpers and activity ----------------------------------------------------------- */
+#helpers {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 1.25rem;
+  mask-image: linear-gradient(to top, transparent 0, #000 1.25rem);
+}
+.helper { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: 0.1rem 0.8rem; }
+.helper .n {
+  grid-row: span 4;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--c, var(--lilac-hi));
+  color: var(--ground);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.helper[data-status="running"] .n { animation: halo 2s ease-out infinite; }
+.helper .desc { margin: 0; font-size: 1rem; line-height: 1.35; color: var(--ink); }
+.helper .facts { margin: 0; font-size: 0.8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.helper .facts b { font-weight: 600; color: var(--c, var(--lilac)); }
+.helper .now { margin: 0; font-size: 0.8rem; color: var(--ink-3); }
+.helper .sum {
+  margin: 0.2rem 0 0;
+  font-size: 0.86rem;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.helper[data-status="completed"] { --c: var(--mint); }
+.helper[data-status="failed"] { --c: var(--coral); }
+.helper[data-status="stopped"], .helper[data-status="killed"] { --c: var(--ink-3); }
+
+#activity {
+  overflow-y: auto;
+  padding: 0 0.4rem 2rem 0;
+  mask-image: linear-gradient(to top, transparent 0, #000 2.5rem);
+}
+#talk, #activity { max-height: 28rem; }
+.tool {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr) auto;
+  grid-template-areas: "ico name when" "ico sum st";
+  gap: 0.1rem 0.75rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--rule);
+}
+.tool > .ico { grid-area: ico; width: 1rem; height: 1rem; margin-top: 0.22rem; color: var(--lilac); }
+.tool .name { grid-area: name; font-size: 0.94rem; font-weight: 500; color: var(--ink); min-width: 0; }
+.tool .by {
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  font-size: 0.7rem;
+  vertical-align: 0.12em;
+  color: var(--violet);
+}
+.tool .when { grid-area: when; font-size: 0.74rem; color: var(--ink-3); }
+.tool .sum {
+  grid-area: sum;
+  font: 0.78rem/1.5 var(--mono);
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tool .st { grid-area: st; justify-self: end; align-self: center; width: 0.9rem; height: 0.9rem; color: var(--ink-3); }
+.tool[data-status="running"] .st { color: var(--lilac); animation: spin 0.9s linear infinite; }
+.tool[data-status="done"] .st { color: var(--mint); }
+.tool[data-status="failed"] .st { color: var(--coral); }
+.tool[data-status="failed"] .sum { color: #e9b3bb; }
+.new { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+/* Offline, what was last seen stays, dimmed and still: nothing is known to be running. */
+body[data-link="offline"] :is(.talk, .work) { opacity: 0.62; }
+body[data-link="offline"] :is(.tool .st, .helper .n) { animation: none; }
+body[data-link="offline"] .tool[data-status="running"] .st { visibility: hidden; }
+
+/* ---- readouts ----------------------------------------------------------------------- */
+.readout { border-top: 1px solid var(--rule); }
+.readout dl { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin: 0; }
+.readout div { padding: 0.75rem var(--gutter) 0.85rem; border-left: 1px solid var(--rule); min-width: 0; }
+.readout div:first-child { border-left: 0; }
+.readout dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.readout dd small { margin-left: 0.35rem; font-size: 0.74rem; font-weight: 400; font-stretch: 100%; color: var(--ink-3); }
+[title] { cursor: help; }
+
+@keyframes spin { to { transform: rotate(1turn); } }
+@keyframes caret { 50% { opacity: 0; } }
+@keyframes beat { 50% { opacity: 0.35; } }
+@keyframes halo {
+  0% { box-shadow: 0 0 0 0 rgb(239 226 255 / 0.45); }
+  100% { box-shadow: 0 0 0 0.55rem rgb(239 226 255 / 0); }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(6px); filter: blur(4px); } }
+@keyframes shift { from { opacity: 0.2; filter: blur(6px); letter-spacing: 0.05em; } }
+
+/* ---- smaller windows ---------------------------------------------------------------- */
+/* The whole HUD on one screen wherever it fits; smaller windows scroll. */
+@media (min-width: 760px) and (min-height: 600px) {
+  body { height: 100dvh; overflow: hidden; }
+  .core { container-type: size; }
+  .reactor { width: min(100%, 100cqh - 8rem); min-width: 13rem; }
+  #talk, #activity { max-height: none; }
+  #activity { flex: 1 1 0; min-height: 7rem; }
+}
+@media (max-width: 1179px) {
+  main {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "core talk" "core work";
+  }
+  .talk { border-right: 0; border-left: 1px solid var(--rule); }
+  .work { border-top: 1px solid var(--rule); }
+  .readout div { padding-inline: 0.85rem; }
+}
+@media (max-width: 959px) {
+  .readout dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .readout div:nth-child(4n + 1) { border-left: 0; }
+  .readout div:nth-child(n + 5) { border-top: 1px solid var(--rule); }
+}
+@media (max-width: 759px) {
+  .meta dd { max-width: 16ch; }
+  main { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "core" "talk" "work"; }
+  .talk { border-left: 0; border-top: 1px solid var(--rule); }
+  .work { border-left: 0; }
+  .readout dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .readout div { border-left: 0; border-top: 1px solid var(--rule); }
+  .readout div:nth-child(even) { border-left: 1px solid var(--rule); }
+  .readout div:nth-child(-n + 2) { border-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body data-state="connecting" data-link="connecting">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-read" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.75h5l3 3v9.5H4z"/><path d="M9 1.75v3h3M6 8.5h4M6 11h3"/></g>
+    <g id="i-search" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.25"/><path d="M10.25 10.25 14 14"/></g>
+    <g id="i-terminal" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"/><path d="m4.5 6.25 2 1.75-2 1.75M8.5 10.25h3"/></g>
+    <g id="i-edit" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.25 13.75 5.5 6 13.25H2.75V10z"/><path d="m8.75 4 3.25 3.25"/></g>
+    <g id="i-web" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.25"/><ellipse cx="8" cy="8" rx="2.6" ry="6.25"/><path d="M1.75 8h12.5"/></g>
+    <g id="i-helper" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.25"/><path d="M3.1 4.4a6.25 6.25 0 0 1 9.8 0M12.9 11.6a6.25 6.25 0 0 1-9.8 0"/><circle cx="13.6" cy="4.9" r="0.9" fill="currentColor" stroke="none"/></g>
+    <g id="i-eye" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 8S4 3.25 8 3.25 14.5 8 14.5 8 12 12.75 8 12.75 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></g>
+    <g id="i-clip" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3.25" y="2.75" width="9.5" height="11.5" rx="1.5"/><rect x="5.75" y="1.5" width="4.5" height="2.5" rx="0.75"/></g>
+    <g id="i-todo" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 4.5 1.25 1.25L6 3.5M8.5 4.5h5M2.5 10.5l1.25 1.25L6 9.5M8.5 10.5h5"/></g>
+    <g id="i-ask" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.25"/><path d="M6.2 6.3a1.85 1.85 0 1 1 2.6 1.7c-.5.25-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.4" r="0.8" fill="currentColor" stroke="none"/></g>
+    <g id="i-tool" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.75v2.5M8 11.75v2.5M1.75 8h2.5M11.75 8h2.5"/></g>
+    <g id="i-running" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M8 2a6 6 0 1 1-6 6"/></g>
+    <g id="i-done" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8.5 3.2 3.2L13 4.75"/></g>
+    <g id="i-failed" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="m4.25 4.25 7.5 7.5M11.75 4.25l-7.5 7.5"/></g>
+    <g id="i-ended" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 8h8"/></g>
+  </defs>
+</svg>
+
+<header class="bar">
+  <div class="brand">
+    <h1 class="wordmark">lila</h1>
+    <p class="link label" id="link" style="margin:0"><i></i><span>Connecting</span></p>
+  </div>
+  <dl class="meta">
+    <div><dt>Model</dt><dd id="model">—</dd></div>
+    <div><dt>Voice</dt><dd id="voice">—</dd></div>
+    <div><dt>Folder</dt><dd id="folder">—</dd></div>
+    <div><dt>Up</dt><dd id="uptime" class="num">—</dd></div>
+  </dl>
+</header>
+
+<main>
+  <section class="core" aria-label="Lila right now">
+    <div class="reactor">
+      <canvas id="rings" aria-hidden="true"></canvas>
+      <div class="heart">
+        <p class="state" id="state" aria-live="polite">Connecting</p>
+        <p class="detail" id="detail"></p>
+      </div>
+    </div>
+    <div class="below">
+      <div id="ctx">
+        <p class="ctx-head"><span class="label">Context</span><span class="ctx-pct num" id="ctx-pct">—</span><span class="ctx-of num" id="ctx-of"></span></p>
+        <ul class="parts" id="ctx-parts"></ul>
+      </div>
+      <div class="ask" id="ask" hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-ask"/></svg>
+        <div>
+          <p class="q" id="ask-q"></p>
+          <code id="ask-sum"></code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="talk" aria-labelledby="talk-h">
+    <h2 id="talk-h">Conversation</h2>
+    <ol id="talk" role="log" tabindex="0" aria-label="Conversation"></ol>
+  </section>
+
+  <section class="work" aria-label="Work">
+    <h2>Helpers <span class="count" id="helpers-count"></span></h2>
+    <ul id="helpers"></ul>
+    <h2>Activity <span class="count" id="activity-count"></span></h2>
+    <ol id="activity" role="log" tabindex="0" aria-label="Activity"></ol>
+  </section>
+</main>
+
+<footer class="readout" aria-label="Session">
+  <dl>
+    <div title="Claude Code's estimate at API prices. With a subscription sign-in, this isn't what you pay."><dt>Spend · est.</dt><dd id="st-cost" class="num">—</dd></div>
+    <div><dt>Replies</dt><dd id="st-replies" class="num">—</dd></div>
+    <div title="From your words being understood to the first sound of her reply (the last reply)"><dt>Reply time</dt><dd id="st-latency" class="num">—</dd></div>
+    <div><dt>Last turn</dt><dd id="st-turn" class="num">—</dd></div>
+    <div><dt>Written</dt><dd id="st-output" class="num">—</dd></div>
+    <div title="Share of input tokens read from Claude's prompt cache"><dt>Cache hits</dt><dd id="st-cache" class="num">—</dd></div>
+    <div><dt>Tool calls</dt><dd id="st-tools" class="num">—</dd></div>
+    <div><dt>Web searches</dt><dd id="st-web" class="num">—</dd></div>
+  </dl>
+</footer>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const TAU = Math.PI * 2;
+const TOP = -Math.PI / 2;
+const N = 180; // conversation trace: 6 seconds at 30 samples a second
+const SLOTS = [-58, -122, -18, -162, 58, 122, 18, 162].map((d) => (d * Math.PI) / 180);
+const STATES = {
+  connecting: { label: "Connecting", color: [150, 134, 189] },
+  offline: { label: "Offline", color: [96, 82, 132] },
+  listening: { label: "Listening", color: [201, 167, 255] },
+  hearing: { label: "Hearing you", color: [143, 180, 255] },
+  thinking: { label: "Thinking", color: [169, 139, 240] },
+  speaking: { label: "Speaking", color: [232, 214, 255] },
+  asking: { label: "Asking you", color: [255, 184, 77] },
+};
+const VOICE = { you: [143, 180, 255], lila: [214, 188, 255] };
+const DONE = { completed: [127, 224, 189], failed: [255, 135, 148] };
+const PARTS = [
+  [/free/i, null],
+  [/compact|buffer|reserve/i, "reserve"],
+  [/message/i, "#efe2ff"],
+  [/system prompt/i, "#9b7bea"],
+  [/mcp/i, "#e39bf0"],
+  [/tool/i, "#c9a7ff"],
+  [/memory/i, "#f2b8d8"],
+];
+const ICONS = [
+  [/^(Grep|Glob)$/, "search"],
+  [/^(Read|LS)$/, "read"],
+  [/^(Bash|BashOutput|KillShell|KillBash|Monitor)$/, "terminal"],
+  [/^(Edit|MultiEdit|Write|NotebookEdit)$/, "edit"],
+  [/^Web/, "web"],
+  [/^(Agent|Task)$/, "helper"],
+  [/screenshot$/, "eye"],
+  [/clipboard$/, "clip"],
+  [/^TodoWrite$/, "todo"],
+  [/^AskUserQuestion$/, "ask"],
+];
+const KINDS = { local_bash: "Background command", local_workflow: "Workflow", remote_agent: "Remote helper" };
+const STATUS = { running: "Working", pending: "Waiting", paused: "Paused", completed: "Done", failed: "Failed", stopped: "Stopped", killed: "Stopped" };
+const FINISHED = new Set(["completed", "failed", "stopped", "killed"]);
+const calm = matchMedia("(prefers-reduced-motion: reduce)");
+
+// ---- formatting ---------------------------------------------------------------------------
+const pad = (n) => String(n).padStart(2, "0");
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const tokens = (n) => (n < 1000 ? String(Math.round(n)) : n < 1e6 ? `${(n / 1000).toFixed(n < 1e4 ? 1 : 0)}k` : `${(n / 1e6).toFixed(2)}M`);
+const secs = (ms) => (ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(ms < 1e4 ? 2 : 1)} s`);
+const clock = (t) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+function uptime(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+  return h ? `${h}:${pad(m)}:${pad(s % 60)}` : `${m}:${pad(s % 60)}`;
+}
+function took(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return s < 60 ? `${s}s` : s < 3600 ? `${Math.floor(s / 60)}m ${pad(s % 60)}s` : `${Math.floor(s / 3600)}h ${pad(Math.floor(s / 60) % 60)}m`;
+}
+function toolName(name) {
+  if (!name || !name.startsWith("mcp__")) return name || "Tool";
+  const [, server, tool = ""] = name.split("__");
+  const label = tool.replace(/_/g, " ");
+  return server === "lila" ? label.charAt(0).toUpperCase() + label.slice(1) : `${label} · ${server.replace(/_/g, " ")}`;
+}
+const iconFor = (name) => (ICONS.find(([re]) => re.test(name)) || [null, "tool"])[1];
+const partColor = (name) => (PARTS.find(([re]) => re.test(name)) || [null, "#7d68b8"])[1];
+function shorten(path) {
+  if (!path) return "—";
+  const parts = String(path).split(/[\\/]+/).filter(Boolean);
+  return parts.length > 2 ? `…/${parts.slice(-2).join("/")}` : String(path);
+}
+
+// ---- DOM ---------------------------------------------------------------------------------
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+}
+function icon(name, cls = "ico") {
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 16 16");
+  svg.setAttribute("class", cls);
+  svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS(NS, "use");
+  use.setAttribute("href", `#i-${name}`);
+  svg.append(use);
+  return svg;
+}
+function set(id, text, title) {
+  const node = $(id);
+  if (node.textContent !== text) node.textContent = text;
+  if (title !== undefined) node.title = title;
+}
+/** Run `change`, keeping a log scrolled to its end if the reader was already there. */
+function stick(list, atEnd, change) {
+  const near = atEnd
+    ? list.scrollHeight - list.scrollTop - list.clientHeight < 60
+    : list.scrollTop < 40;
+  change();
+  if (near) list.scrollTop = atEnd ? list.scrollHeight : 0;
+}
+const animated = () => performance.now() - helloAt > 600; // not while a reconnect replays history
+
+// ---- state -------------------------------------------------------------------------------
+let app = null; // what Lila has told us; starts over on every (re)connect
+let helloAt = 0;
+const live = { link: "connecting", state: "connecting", mic: 0, voice: 0 };
+const trace = { buf: new Array(N).fill(null), head: 0, at: 0 };
+
+function reset(e) {
+  app = {
+    started: e.started, setup: {}, claude: {}, context: null, stats: null, ask: null,
+    tasks: new Map(), nums: new Map(), tools: new Map(), last: null,
+  };
+  helloAt = performance.now();
+  $("talk").replaceChildren();
+  $("activity").replaceChildren();
+  renderHeader(); renderContext(); renderStats(); renderHelpers(); renderTalkEmpty(); renderActivityEmpty();
+  setState(live.state);
+}
+
+function setLink(link) {
+  live.link = link;
+  document.body.dataset.link = link;
+  set("link", "");
+  $("link").replaceChildren(el("i"), el("span", null, { live: "Live", offline: "Offline", connecting: "Connecting" }[link]));
+  if (link !== "live") setState(link === "offline" ? "offline" : "connecting");
+  if (app) renderHelpers();
+}
+
+function setState(state) {
+  live.state = state;
+  document.body.dataset.state = state;
+  const label = STATES[state].label;
+  const word = $("state");
+  if (word.textContent !== label) {
+    word.textContent = label;
+    word.classList.remove("shift");
+    void word.offsetWidth; // restart the animation
+    word.classList.add("shift");
+  }
+  document.title = state === "listening" ? "lila" : `lila · ${label}`;
+  updateDetail();
+  renderAsk();
+  markLive();
+}
+
+function updateDetail() {
+  const running = app ? [...app.tasks.values()].filter((t) => !FINISHED.has(t.status)).length : 0;
+  let text = "";
+  if (live.state === "offline") text = "Start lila --web and this page reconnects";
+  else if (live.state === "listening") text = running ? `${plural(running, "helper")} working in the background` : "Just start talking";
+  else if (live.state === "hearing") text = "I'll answer when you pause";
+  else if (live.state === "speaking") text = app && app.setup.barge_in ? "Talk over her to interrupt" : "";
+  else if (live.state === "asking") text = "Say yes or no";
+  else if (live.state === "thinking") {
+    const tool = app && [...app.tools.values()].reverse().find((t) => !t.parent && t.li.dataset.status === "running");
+    text = tool ? `${toolName(tool.name)} · ${tool.summary || "working"}` : "Working on it";
+  }
+  set("detail", text);
+}
+
+// ---- events ------------------------------------------------------------------------------
+function tick(e) {
+  if (e.state !== live.state && live.link === "live") setState(e.state);
+  live.mic = level(e.mic);
+  live.voice = level(e.voice);
+  const who = live.voice > 0.04 ? "lila" : live.mic > 0.1 ? "you" : null;
+  trace.buf[trace.head] = who ? { who, lvl: who === "lila" ? live.voice : live.mic } : null;
+  trace.head = (trace.head + 1) % N;
+  trace.at = performance.now();
+}
+/** Loudness (RMS of 16-bit samples) to 0..1 on a log scale: a quiet room is 0, a raised voice 1. */
+function level(rms) {
+  return Math.min(1, Math.max(0, (Math.log10(Math.max(rms || 0, 1)) - 2.2) / 1.45));
+}
+
+function addYou(e) {
+  say("you").p.textContent = e.text;
+}
+function lilaStart() {
+  if (app.last && app.last.who === "lila") {
+    const p = el("p");
+    stick($("talk"), true, () => app.last.li.append(p));
+    app.last.p = p;
+  } else say("lila");
+}
+function lilaText(e) {
+  if (!app.last || app.last.who !== "lila") say("lila");
+  stick($("talk"), true, () => app.last.p.append(e.text));
+}
+function say(who) {
+  const li = el("li", `say ${who}${animated() ? " new" : ""}`);
+  const p = el("p");
+  li.append(el("span", "label", who === "you" ? "You" : "Lila"), p);
+  const list = $("talk");
+  stick(list, true, () => {
+    list.querySelector(".empty")?.remove();
+    list.append(li);
+    while (list.children.length > 60) list.firstElementChild.remove();
+    const items = list.children;
+    for (let i = 0; i < items.length; i++) items[i].classList.toggle("past", i < items.length - 2);
+  });
+  app.last = { who, li, p };
+  markLive();
+  return app.last;
+}
+function markLive() {
+  const items = $("talk").children;
+  const talking = live.state === "thinking" || live.state === "speaking";
+  for (let i = 0; i < items.length; i++) {
+    items[i].classList.toggle("live", talking && i === items.length - 1 && items[i].classList.contains("lila"));
+  }
+}
+function renderTalkEmpty() {
+  if (!$("talk").children.length) $("talk").append(el("li", "empty", "Nothing said yet. Talk to Lila and her answers appear here as she writes them."));
+}
+
+function addTool(e) {
+  const li = el("li", `tool${animated() ? " new" : ""}`);
+  const name = el("span", "name", toolName(e.name));
+  const helper = e.parent && [...app.tasks.values()].find((t) => t.tool_use_id === e.parent);
+  if (helper) name.append(el("span", "by label", `Helper ${app.nums.get(helper.id)}`));
+  const sum = el("span", "sum", e.summary || "");
+  if (e.summary) sum.title = e.summary;
+  li.append(icon(iconFor(e.name)), name, el("time", "when num", clock(e.t)), sum);
+  const tool = { id: e.id, name: e.name, summary: e.summary, parent: e.parent, t: e.t, li };
+  // Already over: the reply it belonged to ended, or its helper finished, before we connected.
+  const over = e.parent ? helper && FINISHED.has(helper.status) : app.stats && app.stats.result_at > e.t;
+  setStatus(tool, over ? "ended" : "running");
+  app.tools.set(e.id, tool);
+  const list = $("activity");
+  stick(list, false, () => {
+    list.querySelector(".empty")?.remove();
+    list.prepend(li);
+    while (list.children.length > 120) app.tools.delete(list.lastElementChild.dataset.id), list.lastElementChild.remove();
+  });
+  li.dataset.id = e.id;
+  set("activity-count", app.stats ? String(app.stats.tools) : "");
+  updateDetail();
+}
+function setStatus(tool, status) {
+  tool.li.dataset.status = status;
+  tool.li.querySelector(".st")?.remove();
+  tool.li.append(icon(status, "st"));
+}
+function toolDone(e) {
+  const tool = app.tools.get(e.id);
+  if (tool) setStatus(tool, e.error ? "failed" : "done");
+  updateDetail();
+}
+function endTools(match) {
+  for (const tool of app.tools.values()) if (tool.li.dataset.status === "running" && match(tool)) setStatus(tool, "ended");
+}
+function renderActivityEmpty() {
+  if (!$("activity").children.length) $("activity").append(el("li", "empty", "No tools used yet. Every file read, search, command and web visit shows up here."));
+}
+
+function onTask(e) {
+  const before = app.tasks.get(e.id);
+  if (!app.nums.has(e.id)) app.nums.set(e.id, app.nums.size + 1);
+  app.tasks.set(e.id, e);
+  if (FINISHED.has(e.status) && (!before || !FINISHED.has(before.status))) {
+    e.finished = before ? performance.now() : 0; // satellites of tasks finished before we connected don't linger
+    endTools((t) => t.parent === e.tool_use_id);
+  }
+  renderHelpers();
+  updateDetail();
+}
+function renderHelpers() {
+  const list = $("helpers");
+  const tasks = app ? [...app.tasks.values()] : [];
+  tasks.sort((a, b) => FINISHED.has(a.status) - FINISHED.has(b.status) || b.started - a.started);
+  list.replaceChildren(...tasks.map(helperRow));
+  if (!tasks.length) list.append(el("li", "empty", "No helpers right now. Longer jobs go to a background helper, so you can keep talking."));
+  const running = tasks.filter((t) => !FINISHED.has(t.status)).length;
+  set("helpers-count", running && live.link === "live" ? `${running} running` : "");
+}
+function helperRow(t) {
+  const li = el("li", "helper");
+  li.dataset.status = t.status || "running";
+  const done = FINISHED.has(t.status);
+  const facts = el("p", "facts num");
+  const word = STATUS[t.status] || "Working";
+  facts.append(el("b", null, !done && live.link !== "live" ? `Last seen ${word.toLowerCase()}` : word));
+  const ms = done ? t.ms ?? t.t - t.started : Date.now() - t.started;
+  const bits = [
+    KINDS[t.task_type],
+    took(ms),
+    t.tool_uses != null && plural(t.tool_uses, "tool call"),
+    t.tokens != null && `${tokens(t.tokens)} tokens`,
+  ].filter(Boolean);
+  facts.append(` · ${bits.join(" · ")}`);
+  li.append(el("span", "n num", String(app.nums.get(t.id))), el("p", "desc", t.description || "Background task"), facts);
+  if (!done && t.last_tool) {
+    const verb = live.link === "live" ? "Now using" : "Last used";
+    li.append(el("p", "now", `${verb} ${toolName(t.last_tool)}`));
+  }
+  if (t.summary) li.append(el("p", "sum", t.summary));
+  return li;
+}
+
+function renderAsk() {
+  const asking = live.state === "asking" && app && app.ask;
+  $("ask").hidden = !asking;
+  $("ctx").hidden = !!asking;
+  if (asking) {
+    set("ask-q", app.ask.question || `Lila would like to use ${toolName(app.ask.tool)}.`);
+    set("ask-sum", app.ask.summary || "", app.ask.summary || "");
+    $("ask-sum").hidden = !app.ask.summary;
+  }
+}
+
+function renderHeader() {
+  const setup = app ? app.setup : {}, claude = app ? app.claude : {};
+  const model = claude.model || (app && app.context && app.context.model) || setup.model || "Claude Code default";
+  set("model", setup.effort ? `${model} · ${setup.effort}` : model, model);
+  set("voice", setup.tts || "—", setup.tts ? `Speaking with ${setup.voice || "Fish's default voice"} on ${setup.tts}; hearing with ${setup.stt}` : "");
+  const folder = claude.cwd || setup.folder;
+  set("folder", shorten(folder), folder || "");
+}
+
+function renderContext() {
+  const c = app && app.context;
+  set("ctx-pct", c && c.percent != null ? `${Math.round(c.percent)}%` : "—");
+  set("ctx-of", c && c.used != null && c.max ? `${tokens(c.used)} of ${tokens(c.max)} tokens` : "");
+  const list = $("ctx-parts");
+  list.replaceChildren();
+  for (const part of c ? c.parts : []) {
+    const color = partColor(part.name);
+    if (!color) continue;
+    const li = el("li");
+    const swatch = el("i", color === "reserve" ? "reserve" : "");
+    if (color !== "reserve") swatch.style.setProperty("--c", color);
+    li.append(swatch, part.name, el("span", "num", tokens(part.tokens)));
+    list.append(li);
+  }
+}
+
+function renderStats() {
+  const s = app && app.stats;
+  const none = "—";
+  set("st-cost", s ? `$${s.cost.toFixed(s.cost < 10 ? 3 : 2)}` : none);
+  set("st-replies", s ? String(s.replies) : none);
+  set("st-latency", s && s.latency != null ? secs(s.latency) : none);
+  set("st-turn", s && s.ms != null ? secs(s.ms) : none, s && s.api_ms != null ? `${secs(s.api_ms)} of it waiting on the API` : "");
+  const out = $("st-output");
+  out.replaceChildren(s ? tokens(s.output) : none);
+  if (s) out.append(el("small", null, "tokens"));
+  const read = s ? s.input + s.cache_read + s.cache_write : 0;
+  set("st-cache", read ? `${Math.round((100 * s.cache_read) / read)}%` : none);
+  set("st-tools", s ? String(s.tools) : none);
+  set("st-web", s ? String(s.web) : none);
+  set("activity-count", s && s.tools ? String(s.tools) : "");
+}
+
+const handlers = {
+  hello: reset,
+  tick,
+  setup: (e) => { app.setup = e; renderHeader(); },
+  claude: (e) => { app.claude = e; renderHeader(); },
+  context: (e) => { app.context = e; renderContext(); renderHeader(); },
+  stats: (e) => {
+    const ended = app.stats && e.result_at !== app.stats.result_at;
+    app.stats = e;
+    renderStats();
+    if (ended) endTools((t) => !t.parent);
+    updateDetail();
+  },
+  task: onTask,
+  tool: addTool,
+  tool_done: toolDone,
+  you: addYou,
+  lila_start: lilaStart,
+  lila: lilaText,
+  ask: (e) => { app.ask = e; renderAsk(); },
+};
+
+let source = null, retry = 0;
+function connect() {
+  source = new EventSource("/events");
+  source.onopen = () => setLink("live");
+  source.onmessage = (m) => {
+    let e;
+    try { e = JSON.parse(m.data); } catch { return; }
+    if (app || e.type === "hello") handlers[e.type]?.(e);
+  };
+  source.onerror = () => {
+    setLink("offline");
+    if (source.readyState === EventSource.CLOSED) {
+      clearTimeout(retry);
+      retry = setTimeout(connect, 3000);
+    }
+  };
+}
+
+setInterval(() => {
+  if (!app) return;
+  if (app.started) set("uptime", uptime(Date.now() - app.started));
+  // Offline, the last known state stays on screen as it was: helpers stop when Lila does.
+  if (live.link === "live" && [...app.tasks.values()].some((t) => !FINISHED.has(t.status))) renderHelpers();
+}, 1000);
+
+// ---- the reactor -------------------------------------------------------------------------
+const canvas = $("rings");
+const g = canvas.getContext("2d");
+let size = 0, dpr = 1;
+new ResizeObserver(([entry]) => {
+  size = entry.contentRect.width;
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(size * dpr);
+  canvas.height = Math.round(size * dpr);
+}).observe(canvas);
+
+const anim = { color: STATES.connecting.color.slice(), level: 0, think: 0, scale: 0, spin: [0, 0], parts: [], last: 0 };
+const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${Math.max(0, Math.min(1, a))})`;
+const ease = (dt, rate) => 1 - Math.exp(-dt * rate);
+function ring(r, style, width) {
+  g.beginPath();
+  g.arc(0, 0, r, 0, TAU);
+  g.strokeStyle = style;
+  g.lineWidth = width;
+  g.stroke();
+}
+function spoke(a, r1, r2) {
+  const x = Math.cos(a), y = Math.sin(a);
+  g.moveTo(x * r1, y * r1);
+  g.lineTo(x * r2, y * r2);
+}
+
+function draw(now) {
+  requestAnimationFrame(draw);
+  const dt = Math.min(0.1, (now - (anim.last || now)) / 1000);
+  anim.last = now;
+  if (!size) return;
+  const still = calm.matches;
+  const R = size / 2;
+  const target = STATES[live.state].color;
+  anim.color = anim.color.map((v, i) => v + (target[i] - v) * ease(dt, 5));
+  const A = anim.color;
+  const want = live.state === "offline" ? 0 : Math.max(live.voice, live.mic);
+  anim.level += (want - anim.level) * ease(dt, want > anim.level ? 22 : 6);
+  anim.think += ((live.state === "thinking" ? 1 : 0) - anim.think) * ease(dt, 4);
+  if (!still) {
+    anim.scale += dt * 0.06 * anim.think;
+    anim.spin[0] += dt * 1.15 * anim.think;
+    anim.spin[1] -= dt * 0.7 * anim.think;
+  }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, size, size);
+  g.translate(R, R);
+  g.lineCap = "butt";
+
+  // Outer scale: turns slowly only while Claude is working.
+  g.save();
+  g.rotate(anim.scale);
+  g.beginPath();
+  for (let i = 0; i < 120; i++) spoke((i / 120) * TAU, R * 0.988, R * (i % 10 ? 0.968 : 0.948));
+  g.strokeStyle = rgba(A, 0.3);
+  g.lineWidth = 1;
+  g.stroke();
+  g.restore();
+
+  // Context window, one segment per category, from twelve o'clock.
+  const cr = R * 0.842, cw = Math.max(3, R * 0.03);
+  ring(cr, rgba(A, 0.07), cw);
+  ring(cr - cw / 2, rgba(A, 0.14), 1);
+  ring(cr + cw / 2, rgba(A, 0.14), 1);
+  g.beginPath();
+  for (let k = 0; k < 20; k++) spoke(TOP + (k / 20) * TAU, cr + cw / 2 + R * 0.008, cr + cw / 2 + R * (k % 5 ? 0.018 : 0.03));
+  g.strokeStyle = rgba(A, 0.32);
+  g.lineWidth = 1;
+  g.stroke();
+  const ctx = app && app.context;
+  const parts = ctx && ctx.max ? ctx.parts.filter((p) => partColor(p.name)).map((p) => ({ f: p.tokens / ctx.max, c: partColor(p.name) })) : [];
+  if (anim.parts.length !== parts.length) anim.parts = parts.map(() => 0);
+  let a = TOP;
+  parts.forEach((p, i) => {
+    anim.parts[i] += (p.f - anim.parts[i]) * ease(dt, 3);
+    const sweep = anim.parts[i] * TAU, gap = Math.min(0.012, sweep / 3);
+    if (sweep > 0.002) {
+      g.beginPath();
+      g.arc(0, 0, cr, a + gap / 2, a + sweep - gap / 2);
+      g.lineWidth = cw;
+      if (p.c === "reserve") {
+        g.setLineDash([1.5, 2.5]);
+        g.strokeStyle = "rgba(139,123,184,0.85)";
+      } else g.strokeStyle = p.c;
+      g.stroke();
+      g.setLineDash([]);
+    }
+    a += sweep;
+  });
+
+  // Background helpers as satellites; finished ones flash their outcome, then go.
+  const sr = R * 0.906;
+  g.setLineDash([1, 5]);
+  ring(sr, rgba(A, 0.22), 1);
+  g.setLineDash([]);
+  if (app) {
+    for (const t of app.tasks.values()) {
+      const done = FINISHED.has(t.status);
+      const fade = done ? (t.finished ? 1 - (now - t.finished) / 8000 : 0) : live.link === "live" ? 1 : 0.4;
+      if (fade <= 0) continue;
+      const num = app.nums.get(t.id);
+      const angle = SLOTS[(num - 1) % SLOTS.length];
+      const col = done ? DONE[t.status] || [150, 134, 189] : [239, 226, 255];
+      const x = Math.cos(angle) * sr, y = Math.sin(angle) * sr;
+      const trail = Math.min(0.75, 0.12 + 0.035 * (t.tool_uses || 0));
+      const grad = g.createLinearGradient(Math.cos(angle - trail) * sr, Math.sin(angle - trail) * sr, x, y);
+      grad.addColorStop(0, rgba(col, 0));
+      grad.addColorStop(1, rgba(col, 0.75 * fade));
+      g.beginPath();
+      g.arc(0, 0, sr, angle - trail, angle);
+      g.strokeStyle = grad;
+      g.lineWidth = Math.max(2, R * 0.008);
+      g.stroke();
+      const nr = Math.max(7, R * 0.032);
+      if (!done && !still && live.link === "live") {
+        const p = (now / 1600) % 1;
+        g.beginPath();
+        g.arc(x, y, nr * (1 + p * 1.2), 0, TAU);
+        g.strokeStyle = rgba(col, 0.55 * (1 - p));
+        g.lineWidth = 1.25;
+        g.stroke();
+      }
+      g.beginPath();
+      g.arc(x, y, nr, 0, TAU);
+      g.fillStyle = rgba(col, fade);
+      g.shadowColor = rgba(col, 0.8 * fade);
+      g.shadowBlur = R * 0.04;
+      g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = rgba([10, 6, 18], fade);
+      g.font = `700 ${Math.round(nr * 1.15)}px Saira, system-ui, sans-serif`;
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillText(String(num), x, y + nr * 0.06);
+    }
+  }
+
+  // The conversation trace: a sweeping head writes who is talking, and how loud, around the ring.
+  const tr = R * 0.585, tl = R * 0.165;
+  ring(tr, rgba(A, 0.16), 1);
+  const step = TAU / N;
+  const since = live.link === "live" ? Math.min(1, (now - trace.at) / (1000 / 30)) : 0;
+  const head = TOP + (trace.head - 1 + (still ? 1 : since)) * step;
+  if (g.createConicGradient && live.link === "live") {
+    const wedge = 0.9;
+    const cone = g.createConicGradient(head - wedge, 0, 0);
+    cone.addColorStop(0, rgba(A, 0));
+    cone.addColorStop(wedge / TAU, rgba(A, 0.13));
+    cone.addColorStop(wedge / TAU + 0.0001, rgba(A, 0));
+    g.beginPath();
+    g.arc(0, 0, tr + tl, head - wedge, head);
+    g.arc(0, 0, tr, head, head - wedge, true);
+    g.fillStyle = cone;
+    g.fill();
+  }
+  g.lineCap = "round";
+  g.lineWidth = Math.max(1.4, R * 0.0085);
+  for (let i = 0; i < N; i++) {
+    const age = ((trace.head - 1 - i + N) % N) / N;
+    const fade = Math.pow(1 - age, 1.25);
+    const angle = TOP + i * step;
+    const s = trace.buf[i];
+    g.beginPath();
+    if (s) {
+      spoke(angle, tr + R * 0.006, tr + Math.max(R * 0.014, s.lvl * tl));
+      g.strokeStyle = rgba(VOICE[s.who], 0.15 + 0.85 * fade);
+    } else {
+      spoke(angle, tr + R * 0.006, tr + R * 0.008);
+      g.strokeStyle = rgba(A, 0.08 + 0.3 * fade);
+    }
+    g.stroke();
+  }
+  if (live.link === "live") {
+    g.beginPath();
+    spoke(head, tr - R * 0.03, tr + tl + R * 0.025);
+    g.strokeStyle = rgba(A, 0.95);
+    g.lineWidth = 1.5;
+    g.shadowColor = rgba(A, 0.9);
+    g.shadowBlur = 8;
+    g.stroke();
+    g.shadowBlur = 0;
+  }
+  g.lineCap = "butt";
+
+  // Thinking: two counter-rotating arcs, only while Claude works.
+  if (anim.think > 0.01) {
+    g.save();
+    g.rotate(anim.spin[0]);
+    g.strokeStyle = rgba(A, 0.75 * anim.think);
+    g.lineWidth = 2;
+    for (const [s, e] of [[0, 0.95], [2.4, 2.75], [3.6, 4.9]]) {
+      g.beginPath();
+      g.arc(0, 0, R * 0.508, s, e);
+      g.stroke();
+    }
+    g.restore();
+    g.save();
+    g.rotate(anim.spin[1]);
+    g.strokeStyle = rgba(A, 0.4 * anim.think);
+    g.lineWidth = 1;
+    for (const [s, e] of [[0.6, 2.3], [3.9, 5.6]]) {
+      g.beginPath();
+      g.arc(0, 0, R * 0.482, s, e);
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  // The core: a ring that breathes with whoever is talking.
+  const L = anim.level;
+  const kr = R * 0.43 * (1 + L * 0.035);
+  const glow = g.createRadialGradient(0, 0, kr * 0.35, 0, 0, kr);
+  glow.addColorStop(0, rgba(A, 0));
+  glow.addColorStop(0.72, rgba(A, 0.025 + L * 0.05));
+  glow.addColorStop(1, rgba(A, 0.11 + L * 0.2));
+  g.beginPath();
+  g.arc(0, 0, kr, 0, TAU);
+  g.fillStyle = glow;
+  g.fill();
+  g.shadowColor = rgba(A, 0.95);
+  g.shadowBlur = R * (0.035 + L * 0.13);
+  ring(kr, rgba(A, 0.7 + L * 0.3), 1.5 + L * 2.5);
+  g.shadowBlur = 0;
+  ring(kr - R * 0.03, rgba(A, 0.13), 1);
+  g.beginPath();
+  for (let k = 0; k < 4; k++) spoke(TOP + (k * TAU) / 4, kr - R * 0.075, kr - R * 0.045);
+  g.strokeStyle = rgba(A, 0.5);
+  g.lineWidth = 1;
+  g.stroke();
+}
+
+reset({ started: null });
+app = null; // nothing is known until Lila says hello
+setLink("connecting");
+connect();
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

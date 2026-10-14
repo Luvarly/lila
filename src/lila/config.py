@@ -34,6 +34,7 @@ class Settings:
     ignore_api_key: bool = False
     resume: str | None = None
     greeting: bool = True
+    web: bool = False
     debug: bool = False
     list_devices: bool = False
     mic_test: bool = False
@@ -93,6 +94,7 @@ def parse_args(argv: list[str] | None = None, env: Mapping[str, str] = os.enviro
     )
     p.add_argument("--resume", metavar="ID")
     p.add_argument("--no-greeting", dest="greeting", action="store_false")
+    p.add_argument("--web", action="store_true", help="open the HUD in your browser")
     p.add_argument("--debug", action="store_true")
     p.add_argument("--list-devices", action="store_true")
     p.add_argument("--mic-test", action="store_true")

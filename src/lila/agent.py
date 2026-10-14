@@ -33,9 +33,10 @@ from claude_agent_sdk import (
 )
 
 from .config import Settings
-from .term import INDENT, LILA, YOU, ask_line, error, note, tool_line
+from .term import INDENT, LILA, YOU, ask_line, error, note, screen_summary, tool_line
 from .textfilter import SpeechFilter
 from .tools import TOOL_NAMES, lila_tools
+from .web import Feed
 
 log = logging.getLogger("lila")
 
@@ -170,17 +171,6 @@ def describe_tool(name: str, tool_input: dict[str, Any]) -> str:
     return f"use the {name} tool"
 
 
-def screen_summary(tool_input: dict[str, Any]) -> str:
-    for key in (
-        "command", "file_path", "notebook_path", "url", "pattern", "query", "path", "description",
-    ):  # fmt: skip
-        if tool_input.get(key):
-            return str(tool_input[key])[:200]
-    if not tool_input:
-        return ""
-    return json.dumps(tool_input, separators=(",", ":"), ensure_ascii=False, default=str)[:120]
-
-
 class _Job:
     """One thing to say, fed in chunks: a whole Claude reply, or a phrase outside a turn."""
 
@@ -217,6 +207,8 @@ class VoiceAgent:
         self.turn_done.set()
         self.muted = False
         self.session_id: str | None = None
+        self.feed = Feed()  # what the HUD shows (--web)
+        self.mic_level = 0.0
         # (transcript task, audio bytes, when the utterance ended), in the order spoken
         self.utterances: asyncio.Queue[tuple[asyncio.Future[str], int, float]] = asyncio.Queue()
 
@@ -254,6 +246,8 @@ class VoiceAgent:
         self._agents.clear()  # they ended with the old connection
         if self.turn_active:
             self._end_turn()
+        if self.settings.web:
+            self._spawn(self._measure_context())
 
     # ---- terminal ---------------------------------------------------------------------------
 
@@ -280,6 +274,19 @@ class VoiceAgent:
     @property
     def approval_pending(self) -> bool:
         return self._permission is not None and not self._permission.done()
+
+    @property
+    def state(self) -> str:
+        """What Lila is doing right now, for the HUD."""
+        if self.approval_pending:
+            return "asking"
+        if not self._quiet.is_set():
+            return "hearing"
+        if self.speaker.is_playing:
+            return "speaking"
+        if self.turn_active:
+            return "thinking"
+        return "listening"
 
     def on_user_speech(self) -> None:
         """The segmenter confirmed the user is talking. Their transcript decides what it was."""
@@ -341,6 +348,7 @@ class VoiceAgent:
 
     async def handle_text(self, text: str) -> None:
         self._println(YOU + text)
+        self.feed.emit("you", text=text)
         if self.approval_pending:
             self._permission.set_result(text)
             return
@@ -438,9 +446,11 @@ class VoiceAgent:
             await self._quiet.wait()
             if self.muted:
                 return PermissionResultDeny(message="The user interrupted.", interrupt=True)
-            self._println(ask_line(tool_name, screen_summary(tool_input)))
+            summary = screen_summary(tool_input)
+            self._println(ask_line(tool_name, summary))
             who = "My helper would" if context.agent_id else "I'd"
             question = f"{who} like to {describe_tool(tool_name, tool_input)}. Is that okay?"
+            self.feed.emit("ask", tool=tool_name, summary=summary, question=question)
             for prompt in (question, REPROMPT):
                 self._permission = asyncio.get_running_loop().create_future()
                 try:
@@ -473,6 +483,10 @@ class VoiceAgent:
         self._println(error(f"(lost the connection to Claude Code: {reason})"))
 
     def _handle_message(self, message: Any) -> None:
+        try:
+            self.feed.message(message)
+        except Exception as e:  # the HUD must never break the conversation
+            log.warning("HUD feed: %r", e)
         ignore = self.muted or self._stale_results > 0
         if isinstance(message, StreamEvent):
             if message.parent_tool_use_id or ignore:
@@ -514,6 +528,8 @@ class VoiceAgent:
             # Every result ends what Claude was doing, also a turn it started itself. If more
             # follows (words it hadn't read yet), its message_start begins a new turn.
             self.session_id = message.session_id
+            if self.settings.web:
+                self._spawn(self._measure_context())
             if self._stale_results:
                 self._stale_results -= 1  # the turn we already ended locally
                 return
@@ -525,9 +541,16 @@ class VoiceAgent:
                 self.say(SORRY)
             self._end_turn()
 
+    async def _measure_context(self) -> None:
+        try:
+            self.feed.context(await self.client.get_context_usage())
+        except Exception as e:
+            log.debug("context usage unavailable: %s", e)
+
     def _open_block(self) -> None:
         self._close_block()
         self._filter = SpeechFilter(self.settings.expressive)
+        self.feed.emit("lila_start")
         self._write(LILA)
         self._streaming = True
 
@@ -541,6 +564,7 @@ class VoiceAgent:
                 ms = (self._t_first_delta - self._t_query) * 1000
                 log.debug("transcript -> first text: %.0f ms", ms)
         sys.stdout.write(text.replace("\n", "\n" + INDENT))  # keep the answer in its column
+        self.feed.emit("lila", text=text)
         sys.stdout.flush()
         self._turn_put(self._filter.feed(text))
         self._spoke_since_tool = True
@@ -625,8 +649,11 @@ class VoiceAgent:
                         return
                     if self._awaiting_audio and self._t_first_delta is not None:
                         self._awaiting_audio = False
-                        ms = (time.monotonic() - self._t_first_delta) * 1000
+                        now = time.monotonic()
+                        ms = (now - self._t_first_delta) * 1000
                         log.debug("first text -> first audio: %.0f ms", ms)
+                        if self._t_query is not None:
+                            self.feed.latency((now - self._t_query) * 1000)
                     self.speaker.play(fmt.rate, fmt.channels, pcm)
             except Exception as e:
                 self._println(error(f"(error: text-to-speech failed: {e})"))

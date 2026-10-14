@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import warnings
+import webbrowser
 from collections.abc import Mapping
 
 import sounddevice as sd
@@ -19,6 +20,8 @@ from .agent import GREETING, MEMORY_DIR, VoiceAgent, build_options
 from .audio import (
     FRAME_SAMPLES,
     RATE,
+    START_VOICED,
+    START_VOICED_OVER_SPEECH,
     Microphone,
     Speaker,
     SpeechDetector,
@@ -28,6 +31,7 @@ from .audio import (
 from .config import Settings, parse_args
 from .speech import FishSpeech
 from .term import LogFormatter, dim, error, note, paint
+from .web import Hud
 
 MAX_RECONNECTS = 3
 RECONNECT_DELAY = 2.0  # seconds, times the attempt number
@@ -51,11 +55,15 @@ async def listen(mic: Microphone, agent: VoiceAgent, settings: Settings) -> None
     detector = SpeechDetector(settings.vad_aggressiveness)
     segmenter = UtteranceSegmenter(end_silence_ms=settings.end_silence_ms)
     async for frame in mic.frames():
+        agent.mic_level = rms(frame)
         playing = agent.speaker.is_playing
         if playing and not settings.barge_in and not agent.approval_pending:
             continue  # half-duplex: never hear our own voice
-        threshold = settings.barge_in_rms if playing else settings.speech_rms
-        for event in segmenter.process(frame, detector.is_voiced(frame, threshold)):
+        # Stays high while she's paused mid-speech, or the noise that paused her keeps the utterance open.
+        speaking = agent.speaker.is_speaking
+        threshold = settings.barge_in_rms if speaking else settings.speech_rms
+        need = START_VOICED_OVER_SPEECH if speaking else START_VOICED
+        for event in segmenter.process(frame, detector.is_voiced(frame, threshold), need):
             if event.kind == "speech":
                 agent.show_listening(True)
                 agent.on_user_speech()
@@ -91,7 +99,31 @@ async def run(settings: Settings) -> None:
     mic: Microphone | None = None
     background: list[asyncio.Task] = []
     failures = 0
+    hud: Hud | None = None
     try:
+        if settings.web:
+            hud = Hud(
+                agent.feed,
+                lambda: {
+                    "state": agent.state,
+                    "mic": round(agent.mic_level),
+                    "voice": round(speaker.level),
+                },
+            )
+            url = await hud.start()
+            agent.feed.emit(
+                "setup",
+                key="setup",
+                folder=settings.workdir,
+                model=settings.claude_model,
+                effort=settings.effort,
+                voice=settings.voice_id,
+                tts=settings.tts_model,
+                stt=settings.stt_model,
+                barge_in=settings.barge_in,
+            )
+            print(f"  {dim('hud      ')}{url}\n")
+            webbrowser.open(url)
         while True:
             if agent.session_id:
                 settings.resume = agent.session_id  # reconnect into the same conversation
@@ -131,6 +163,8 @@ async def run(settings: Settings) -> None:
         for task in background:
             task.cancel()
         await asyncio.gather(*background, return_exceptions=True)
+        if hud is not None:
+            await hud.close()
         if mic is not None:
             mic.close()
         speaker.close()

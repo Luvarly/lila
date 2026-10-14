@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "src/lila/hud.html"
+        ],
+        "createdAt": "2026-10-14T13:53:07.716Z",
+        "reason": "Claude: false positive; computed padding is 16-32px on .work and .readout cells (checked in Edge at 1440 and 390)"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "src/lila/hud.html"
+        ],
+        "createdAt": "2026-10-14T13:53:08.005Z",
+        "reason": "Claude: legend swatch for the hatched 'reserved' context series, matching the dashed arc on the reactor; data encoding, not decoration"
+      },
+      {
+        "rule": "em-dash-overuse",
+        "value": "*",
+        "files": [
+          "src/lila/hud.html"
+        ],
+        "createdAt": "2026-10-14T13:53:08.242Z",
+        "reason": "Claude: the dashes are empty-value placeholders in readouts before data arrives, not prose"
+      }
+    ]
+  }
+}

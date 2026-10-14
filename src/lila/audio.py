@@ -16,8 +16,9 @@ import webrtcvad
 RATE = 16000
 FRAME_MS = 30
 FRAME_SAMPLES = RATE * FRAME_MS // 1000  # 480 samples, 960 bytes
-START_WINDOW = 10  # frames; also the 300 ms pre-roll
-START_VOICED = 6  # voiced frames in the window that start an utterance
+START_WINDOW = 12  # frames; also the 360 ms pre-roll
+START_VOICED = 7  # voiced frames in the window that start an utterance
+START_VOICED_OVER_SPEECH = 10  # while Lila speaks, so a click or thud doesn't pause her
 
 
 def rms(frame: bytes) -> float:
@@ -58,10 +59,10 @@ class UtteranceSegmenter:
         self._silence_ms = 0
         self._paused = False  # a pause event went out and nothing was said since
 
-    def process(self, frame: bytes, voiced: bool) -> list[Event]:
+    def process(self, frame: bytes, voiced: bool, need: int = START_VOICED) -> list[Event]:
         if self._frames is None:
             self._recent.append((frame, voiced))
-            if sum(v for _, v in self._recent) < START_VOICED:
+            if sum(v for _, v in self._recent) < need:
                 return []
             self._frames = [f for f, _ in self._recent]
             self._recent.clear()
@@ -133,6 +134,7 @@ class Speaker:
         self._draining = False  # the job ended, so play what's left without pre-buffering
         self._paused = False  # hold the buffer silently while the user may be interrupting
         self._last_audio = 0.0
+        self.level = 0.0  # loudness of what is playing now, for the HUD
 
     @property
     def is_playing(self) -> bool:
@@ -140,6 +142,12 @@ class Speaker:
             if self._paused:
                 return False
             return bool(self._buf) or time.monotonic() - self._last_audio < 0.3
+
+    @property
+    def is_speaking(self) -> bool:
+        """Like is_playing, but still true while paused with speech held back."""
+        with self._lock:
+            return bool(self._buf) or (not self._paused and time.monotonic() - self._last_audio < 0.3)
 
     def play(self, rate: int, channels: int, pcm: bytes) -> None:
         if (rate, channels) != self._format:
@@ -196,5 +204,6 @@ class Speaker:
                     self._last_audio = time.monotonic()
                 if not self._buf:
                     self._primed = self._draining = False
+        self.level = rms(chunk[: len(chunk) // 2 * 2])
         outdata[: len(chunk)] = chunk
         outdata[len(chunk) :] = b"\x00" * (n - len(chunk))

@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
+.impeccable/review/
+.impeccable/hook.cache.json

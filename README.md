@@ -9,6 +9,7 @@ A personal voice assistant. You talk, an agent works in a folder on your machine
 - **Screen:** your transcript, the full answer and every tool call are printed. Code, commands and paths appear on screen and are never read aloud.
 - **Memory:** Lila remembers what's worth knowing about you between conversations, such as your name, the people and projects you mention and how you like things done. It's kept as plain Markdown files in `~/.lila/memory`, shared by every working folder, so you can read, edit or delete them any time. This is Claude Code's own memory feature, pointed at a folder of Lila's.
 - **Personality:** warm, quick and to the point, with a dry sense of humour. Tell it how you'd rather it be, and it remembers that too.
+- **HUD:** `lila --web` opens a live view in your browser: a lilac reactor that shows whether Lila is listening, thinking or speaking, a trace of who spoke when, the context window, background helpers as satellites, live captions, every tool call, and what the session has used. It only shows; it never controls Lila.
 - **Clipboard and screen:** say "what's this?" and Lila reads what you copied (text, an image or files). Say "what am I looking at?" and it takes a screenshot of your main screen. It only does either when you ask, and each use shows up on screen.
 
 ## Requirements
@@ -53,6 +54,7 @@ Lila reads `.env` from the current folder (or a parent folder). Real environment
 | `--input-device` / `--output-device` | `LILA_INPUT_DEVICE` / `LILA_OUTPUT_DEVICE` | system default (number or name) |
 | `--ignore-api-key` | `LILA_IGNORE_API_KEY=1` | off: hide `ANTHROPIC_API_KEY` from Claude Code |
 | `--resume <id>` | — | new session |
+| `--web` | — | off: open the HUD in your browser |
 | `--no-greeting`, `--debug`, `--list-devices`, `--mic-test` | — | — |
 
 ## Good to know
@@ -64,6 +66,7 @@ Lila reads `.env` from the current folder (or a parent folder). Real environment
 - **Claude usage** is billed to whatever Claude Code is signed in with. Lila prints which sign-in Claude Code will use at startup.
 - **If Claude Code stops**, Lila reconnects to the same conversation, up to three times in a row. Whatever Claude was doing at that moment is lost, background helpers included. Quitting stops them too.
 - **Screenshots and clipboard contents go to Claude**, like everything else you say. Clear anything private before you ask.
+- **The HUD is local.** It's served on `127.0.0.1` (port 8484, or a free one if that's taken), only answers requests addressed to this machine, and has no buttons. Its spend figure is Claude Code's estimate at API prices; with a subscription sign-in that isn't what you pay. Everything it needs ships with Lila, so it makes no outside requests (the Saira font is included under the SIL Open Font License, `src/lila/saira-OFL.txt`).
 - When you quit with Ctrl+C, Lila prints the session id; `--resume <id>` continues that conversation.
 
 ## Tests

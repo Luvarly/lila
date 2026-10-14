@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
+from typing import Any
 
 INDENT = " " * 9  # status lines line up with the text after a "  lila › " label
 
@@ -51,6 +53,17 @@ LILA = "  " + paint("lila", "1;35") + dim(" › ")
 def tool_line(name: str, summary: str) -> str:
     label = name.removeprefix("mcp__lila__")
     return INDENT + dim("· ") + paint(label, "34") + (" " + dim(summary) if summary else "")
+
+
+def screen_summary(tool_input: dict[str, Any]) -> str:
+    for key in (
+        "command", "file_path", "notebook_path", "url", "pattern", "query", "path", "description",
+    ):  # fmt: skip
+        if tool_input.get(key):
+            return str(tool_input[key])[:200]
+    if not tool_input:
+        return ""
+    return json.dumps(tool_input, separators=(",", ":"), ensure_ascii=False, default=str)[:120]
 
 
 def ask_line(name: str, summary: str) -> str:

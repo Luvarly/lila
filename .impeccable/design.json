@@ -1,0 +1,487 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-14T14:05:42+00:00",
+  "title": "Design System: lila",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Violet-Black Ground",
+        "canonical": "oklch(13.6% 0.028 299.6)",
+        "tonalRamp": [
+          "oklch(15% 0.014 299.6)",
+          "oklch(26% 0.024 299.6)",
+          "oklch(38% 0.028 299.6)",
+          "oklch(50% 0.028 299.6)",
+          "oklch(62% 0.028 299.6)",
+          "oklch(74% 0.028 299.6)",
+          "oklch(85% 0.021 299.6)",
+          "oklch(95% 0.007 299.6)"
+        ]
+      },
+      "lilac": {
+        "role": "primary",
+        "displayName": "Lilac",
+        "canonical": "oklch(79.1% 0.127 301.3)",
+        "tonalRamp": [
+          "oklch(15% 0.064 301.3)",
+          "oklch(26% 0.110 301.3)",
+          "oklch(38% 0.127 301.3)",
+          "oklch(50% 0.127 301.3)",
+          "oklch(62% 0.127 301.3)",
+          "oklch(74% 0.127 301.3)",
+          "oklch(85% 0.095 301.3)",
+          "oklch(95% 0.032 301.3)"
+        ]
+      },
+      "lilac-hi": {
+        "role": "primary",
+        "displayName": "Lilac Light",
+        "canonical": "oklch(93.2% 0.041 305.8)",
+        "tonalRamp": [
+          "oklch(15% 0.021 305.8)",
+          "oklch(26% 0.036 305.8)",
+          "oklch(38% 0.041 305.8)",
+          "oklch(50% 0.041 305.8)",
+          "oklch(62% 0.041 305.8)",
+          "oklch(74% 0.041 305.8)",
+          "oklch(85% 0.031 305.8)",
+          "oklch(95% 0.010 305.8)"
+        ]
+      },
+      "violet": {
+        "role": "primary",
+        "displayName": "Deep Violet",
+        "canonical": "oklch(70.5% 0.146 296.1)",
+        "tonalRamp": [
+          "oklch(15% 0.073 296.1)",
+          "oklch(26% 0.127 296.1)",
+          "oklch(38% 0.146 296.1)",
+          "oklch(50% 0.146 296.1)",
+          "oklch(62% 0.146 296.1)",
+          "oklch(74% 0.146 296.1)",
+          "oklch(85% 0.109 296.1)",
+          "oklch(95% 0.036 296.1)"
+        ]
+      },
+      "you": {
+        "role": "secondary",
+        "displayName": "Periwinkle",
+        "canonical": "oklch(77.2% 0.115 263.8)",
+        "tonalRamp": [
+          "oklch(15% 0.058 263.8)",
+          "oklch(26% 0.100 263.8)",
+          "oklch(38% 0.115 263.8)",
+          "oklch(50% 0.115 263.8)",
+          "oklch(62% 0.115 263.8)",
+          "oklch(74% 0.115 263.8)",
+          "oklch(85% 0.086 263.8)",
+          "oklch(95% 0.029 263.8)"
+        ]
+      },
+      "you-ink": {
+        "role": "secondary",
+        "displayName": "Periwinkle Ink",
+        "canonical": "oklch(89.2% 0.052 268.5)",
+        "tonalRamp": [
+          "oklch(15% 0.026 268.5)",
+          "oklch(26% 0.045 268.5)",
+          "oklch(38% 0.052 268.5)",
+          "oklch(50% 0.052 268.5)",
+          "oklch(62% 0.052 268.5)",
+          "oklch(74% 0.052 268.5)",
+          "oklch(85% 0.039 268.5)",
+          "oklch(95% 0.013 268.5)"
+        ]
+      },
+      "amber": {
+        "role": "tertiary",
+        "displayName": "Question Amber",
+        "canonical": "oklch(83.1% 0.145 74.2)",
+        "tonalRamp": [
+          "oklch(15% 0.072 74.2)",
+          "oklch(26% 0.126 74.2)",
+          "oklch(38% 0.145 74.2)",
+          "oklch(50% 0.145 74.2)",
+          "oklch(62% 0.145 74.2)",
+          "oklch(74% 0.145 74.2)",
+          "oklch(85% 0.109 74.2)",
+          "oklch(95% 0.036 74.2)"
+        ]
+      },
+      "mint": {
+        "role": "tertiary",
+        "displayName": "Done Mint",
+        "canonical": "oklch(83.7% 0.106 168.4)",
+        "tonalRamp": [
+          "oklch(15% 0.053 168.4)",
+          "oklch(26% 0.092 168.4)",
+          "oklch(38% 0.106 168.4)",
+          "oklch(50% 0.106 168.4)",
+          "oklch(62% 0.106 168.4)",
+          "oklch(74% 0.106 168.4)",
+          "oklch(85% 0.080 168.4)",
+          "oklch(95% 0.026 168.4)"
+        ]
+      },
+      "coral": {
+        "role": "tertiary",
+        "displayName": "Failed Coral",
+        "canonical": "oklch(75.9% 0.146 14.3)",
+        "tonalRamp": [
+          "oklch(15% 0.073 14.3)",
+          "oklch(26% 0.127 14.3)",
+          "oklch(38% 0.146 14.3)",
+          "oklch(50% 0.146 14.3)",
+          "oklch(62% 0.146 14.3)",
+          "oklch(74% 0.146 14.3)",
+          "oklch(85% 0.109 14.3)",
+          "oklch(95% 0.036 14.3)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Lilac Ink",
+        "canonical": "oklch(95.1% 0.028 301.8)",
+        "tonalRamp": [
+          "oklch(15% 0.014 301.8)",
+          "oklch(26% 0.024 301.8)",
+          "oklch(38% 0.028 301.8)",
+          "oklch(50% 0.028 301.8)",
+          "oklch(62% 0.028 301.8)",
+          "oklch(74% 0.028 301.8)",
+          "oklch(85% 0.021 301.8)",
+          "oklch(95% 0.007 301.8)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(78.1% 0.065 299.1)",
+        "tonalRamp": [
+          "oklch(15% 0.033 299.1)",
+          "oklch(26% 0.056 299.1)",
+          "oklch(38% 0.065 299.1)",
+          "oklch(50% 0.065 299.1)",
+          "oklch(62% 0.065 299.1)",
+          "oklch(74% 0.065 299.1)",
+          "oklch(85% 0.049 299.1)",
+          "oklch(95% 0.016 299.1)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "oklch(65.5% 0.082 297.4)",
+        "tonalRamp": [
+          "oklch(15% 0.041 297.4)",
+          "oklch(26% 0.071 297.4)",
+          "oklch(38% 0.082 297.4)",
+          "oklch(50% 0.082 297.4)",
+          "oklch(62% 0.082 297.4)",
+          "oklch(74% 0.082 297.4)",
+          "oklch(85% 0.061 297.4)",
+          "oklch(95% 0.021 297.4)"
+        ]
+      },
+      "ctx-system": {
+        "role": "data",
+        "displayName": "Context: System Prompt",
+        "canonical": "oklch(66.2% 0.162 294.9)",
+        "tonalRamp": [
+          "oklch(15% 0.081 294.9)",
+          "oklch(26% 0.140 294.9)",
+          "oklch(38% 0.162 294.9)",
+          "oklch(50% 0.162 294.9)",
+          "oklch(62% 0.162 294.9)",
+          "oklch(74% 0.162 294.9)",
+          "oklch(85% 0.121 294.9)",
+          "oklch(95% 0.041 294.9)"
+        ]
+      },
+      "ctx-mcp": {
+        "role": "data",
+        "displayName": "Context: MCP Tools",
+        "canonical": "oklch(78.9% 0.14 321.3)",
+        "tonalRamp": [
+          "oklch(15% 0.070 321.3)",
+          "oklch(26% 0.121 321.3)",
+          "oklch(38% 0.140 321.3)",
+          "oklch(50% 0.140 321.3)",
+          "oklch(62% 0.140 321.3)",
+          "oklch(74% 0.140 321.3)",
+          "oklch(85% 0.105 321.3)",
+          "oklch(95% 0.035 321.3)"
+        ]
+      },
+      "ctx-memory": {
+        "role": "data",
+        "displayName": "Context: Memory Files",
+        "canonical": "oklch(84.5% 0.078 344.7)",
+        "tonalRamp": [
+          "oklch(15% 0.039 344.7)",
+          "oklch(26% 0.068 344.7)",
+          "oklch(38% 0.078 344.7)",
+          "oklch(50% 0.078 344.7)",
+          "oklch(62% 0.078 344.7)",
+          "oklch(74% 0.078 344.7)",
+          "oklch(85% 0.058 344.7)",
+          "oklch(95% 0.019 344.7)"
+        ]
+      },
+      "ctx-reserve": {
+        "role": "data",
+        "displayName": "Context: Autocompact Reserve",
+        "canonical": "oklch(62.1% 0.092 295.7)",
+        "tonalRamp": [
+          "oklch(15% 0.046 295.7)",
+          "oklch(26% 0.080 295.7)",
+          "oklch(38% 0.092 295.7)",
+          "oklch(50% 0.092 295.7)",
+          "oklch(62% 0.092 295.7)",
+          "oklch(74% 0.092 295.7)",
+          "oklch(85% 0.069 295.7)",
+          "oklch(95% 0.023 295.7)"
+        ]
+      },
+      "ctx-other": {
+        "role": "data",
+        "displayName": "Context: Other",
+        "canonical": "oklch(57.2% 0.121 294.3)",
+        "tonalRamp": [
+          "oklch(15% 0.060 294.3)",
+          "oklch(26% 0.105 294.3)",
+          "oklch(38% 0.121 294.3)",
+          "oklch(50% 0.121 294.3)",
+          "oklch(62% 0.121 294.3)",
+          "oklch(74% 0.121 294.3)",
+          "oklch(85% 0.091 294.3)",
+          "oklch(95% 0.030 294.3)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "rgb(201 167 255 / 0.13)"
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Strong Hairline",
+        "canonical": "rgb(201 167 255 / 0.3)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "State Word",
+        "purpose": "The voice state inside the reactor core; sized to the reactor (cqi)."
+      },
+      "headline": {
+        "displayName": "Wordmark",
+        "purpose": "The lowercase lila wordmark only."
+      },
+      "title": {
+        "displayName": "Readout",
+        "purpose": "Session numbers and the context percent; expanded tabular numerals."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Lila's live words."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "User captions, helper descriptions, tool names, details."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Condensed uppercase field, section and speaker labels."
+      },
+      "mono": {
+        "displayName": "Machine Text",
+        "purpose": "Commands, paths, queries and URLs only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "helper-halo",
+        "value": "0 0 0 0.55rem rgb(239 226 255 / 0)",
+        "purpose": "Expanding halo (from 0 0 0 0 rgb(239 226 255 / 0.45)) on a running helper badge, 2s ease-out loop."
+      },
+      {
+        "name": "ground-bloom",
+        "value": "radial-gradient(ellipse 48% 58% at 50% 46%, rgb(124 82 214 / 0.14), transparent 72%)",
+        "purpose": "Lilac bloom behind the reactor on the page ground."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-arrive",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "New entries and the approval rise 6px from a 4px blur (0.45-0.5s); the state word re-enters from blur (0.55s)."
+      },
+      {
+        "name": "link-beat",
+        "value": "2.4s ease-in-out infinite",
+        "purpose": "Live status dot pulses to 0.35 opacity."
+      },
+      {
+        "name": "caret",
+        "value": "1.05s steps(2, jump-none) infinite",
+        "purpose": "Live caption caret."
+      },
+      {
+        "name": "tool-spin",
+        "value": "0.9s linear infinite",
+        "purpose": "Running tool status mark."
+      },
+      {
+        "name": "color-shift",
+        "value": "0.4s to 0.45s",
+        "purpose": "Link pill and state word colour transitions."
+      },
+      {
+        "name": "reactor-easing",
+        "value": "exponential per frame: colour rate 5, level rise 22 / fall 6, context 3, thinking 4",
+        "purpose": "Canvas values ease toward live targets."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "All CSS animation and transition off; the reactor stops rotation, pulses and sweep but keeps drawing live values."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "max-width: 759px"
+      },
+      {
+        "name": "readout-4",
+        "value": "max-width: 959px"
+      },
+      {
+        "name": "medium",
+        "value": "max-width: 1179px"
+      },
+      {
+        "name": "wide",
+        "value": "min-width: 1180px"
+      },
+      {
+        "name": "one-screen",
+        "value": "min-width: 760px and min-height: 600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Link Pill",
+      "kind": "chip",
+      "refersTo": "link-pill",
+      "description": "Header connection status: faint while connecting, mint and beating when live, coral offline.",
+      "html": "<p class=\"ds-link\"><i></i><span>Connecting</span></p><p class=\"ds-link ds-live\"><i></i><span>Live</span></p><p class=\"ds-link ds-off\"><i></i><span>Offline</span></p>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-link{display:inline-flex;align-items:center;gap:.5rem;margin:0 .5rem 0 0;padding:.28rem .7rem .28rem .6rem;border:1px solid currentColor;border-radius:999px;font:600 .7rem/1.5 var(--sans);font-stretch:75%;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);transition:color .4s}.ds-link i{width:.45rem;height:.45rem;border-radius:50%;background:currentColor}.ds-link span{font-size:.72rem}.ds-live{color:var(--mint)}.ds-live i{animation:ds-beat 2.4s ease-in-out infinite}.ds-off{color:var(--coral)}@keyframes ds-beat{50%{opacity:.35}}@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Readout Strip",
+      "kind": "custom",
+      "refersTo": "readout-cell",
+      "description": "Session numbers as label-over-value cells divided by hairlines.",
+      "html": "<dl class=\"ds-readout\"><div><dt>Spend · est.</dt><dd>$0.412</dd></div><div><dt>Reply time</dt><dd>1.18 s</dd></div><div><dt>Written</dt><dd>5.2k<small>tokens</small></dd></div></dl>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;background:var(--ground);border-top:1px solid var(--rule)}.ds-readout div{padding:.75rem 1.25rem .85rem;border-left:1px solid var(--rule)}.ds-readout div:first-child{border-left:0}.ds-readout dt{font:600 .7rem/1.5 var(--sans);font-stretch:75%;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}.ds-readout dd{margin:.2rem 0 0;font:500 1.3rem/1.2 var(--sans);font-stretch:112%;font-variant-numeric:tabular-nums;color:var(--ink)}.ds-readout small{margin-left:.35rem;font-size:.74rem;font-weight:400;font-stretch:100%;color:var(--ink-3)}"
+    },
+    {
+      "name": "Caption Entries",
+      "kind": "custom",
+      "refersTo": "caption-lila",
+      "description": "What the user said and what Lila is writing, with the live caret.",
+      "html": "<ol class=\"ds-talk\"><li class=\"you\"><span>You</span><p>Can you check why the tests are failing?</p></li><li class=\"lila live\"><span>Lila</span><p>Sure. Let me look at the test output first.</p></li></ol>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-talk{list-style:none;margin:0;padding:1rem;display:grid;gap:1.15rem;background:var(--ground)}.ds-talk li{display:grid;gap:.3rem}.ds-talk span{font:600 .7rem/1.5 var(--sans);font-stretch:75%;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);color:var(--lilac)}.ds-talk .you span{color:var(--you)}.ds-talk p{margin:0;font-family:var(--sans)}.ds-talk .lila p{font-size:clamp(1.05rem,.75rem + .55vw,1.32rem);line-height:1.5;color:var(--ink)}.ds-talk .you p{font-size:1.02rem;color:var(--you-ink)}.ds-talk .live p::after{content:'';display:inline-block;width:.5ch;height:1.05em;margin-left:.2ch;vertical-align:-.16em;background:var(--lilac);animation:ds-caret 1.05s steps(2,jump-none) infinite}@keyframes ds-caret{50%{opacity:0}}@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Tool Row",
+      "kind": "custom",
+      "refersTo": "tool-row",
+      "description": "One tool call: stroke icon, name, helper tag, time, mono argument, status mark.",
+      "html": "<div class=\"ds-tool\"><svg class=\"ico\" viewBox=\"0 0 16 16\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"><circle cx=\"8\" cy=\"8\" r=\"6.25\"/><ellipse cx=\"8\" cy=\"8\" rx=\"2.6\" ry=\"6.25\"/><path d=\"M1.75 8h12.5\"/></g></svg><span class=\"name\">WebSearch<span class=\"by\">Helper 1</span></span><time>16:01:32</time><span class=\"sum\">cheap flights Amsterdam Lisbon</span><svg class=\"st\" viewBox=\"0 0 16 16\"><path d=\"m3 8.5 3.2 3.2L13 4.75\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-tool{display:grid;grid-template-columns:1.1rem minmax(0,1fr) auto;grid-template-areas:'ico name when' 'ico sum st';gap:.1rem .75rem;padding:.6rem 1rem;border-top:1px solid var(--rule);background:var(--ground);font-family:var(--sans)}.ds-tool .ico{grid-area:ico;width:1rem;height:1rem;margin-top:.22rem;color:var(--lilac)}.ds-tool .name{grid-area:name;font-size:.94rem;font-weight:500;color:var(--ink)}.ds-tool .by{margin-left:.5rem;padding:.05rem .35rem;border:1px solid var(--rule-strong);border-radius:3px;font-size:.7rem;font-weight:600;font-stretch:75%;letter-spacing:.16em;text-transform:uppercase;color:var(--violet)}.ds-tool time{grid-area:when;font-size:.74rem;color:var(--ink-3);font-variant-numeric:tabular-nums}.ds-tool .sum{grid-area:sum;font:.78rem/1.5 var(--mono);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-tool .st{grid-area:st;justify-self:end;align-self:center;width:.9rem;height:.9rem;color:var(--mint)}"
+    },
+    {
+      "name": "Helper Row",
+      "kind": "custom",
+      "refersTo": "helper-badge",
+      "description": "A background helper: numbered disc, description, status facts, current tool.",
+      "html": "<div class=\"ds-helper\"><span class=\"n\">1</span><p class=\"desc\">Research flights to Lisbon</p><p class=\"facts\"><b>Working</b> · 9s · 9 tool calls · 18k tokens</p><p class=\"now\">Now using WebFetch</p></div><div class=\"ds-helper done\"><span class=\"n\">2</span><p class=\"desc\">Summarize the open TODOs</p><p class=\"facts\"><b>Done</b> · 41s · 5 tool calls</p></div>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-helper{display:grid;grid-template-columns:1.75rem minmax(0,1fr);gap:.1rem .8rem;padding:.45rem 1rem;background:var(--ground);font-family:var(--sans)}.ds-helper .n{grid-row:span 3;display:grid;place-items:center;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--c,var(--lilac-hi));color:var(--ground);font-size:.8rem;font-weight:700;animation:ds-halo 2s ease-out infinite}.ds-helper.done{--c:var(--mint)}.ds-helper.done .n{animation:none}.ds-helper p{margin:0}.ds-helper .desc{font-size:1rem;line-height:1.35;color:var(--ink)}.ds-helper .facts{font-size:.8rem;color:var(--ink-2);font-variant-numeric:tabular-nums}.ds-helper .facts b{font-weight:600;color:var(--c,var(--lilac))}.ds-helper .now{font-size:.8rem;color:var(--ink-3)}@keyframes ds-halo{0%{box-shadow:0 0 0 0 rgb(239 226 255 / .45)}100%{box-shadow:0 0 0 .55rem rgb(239 226 255 / 0)}}@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}"
+    },
+    {
+      "name": "Approval",
+      "kind": "custom",
+      "refersTo": "approval",
+      "description": "A question waiting for a spoken yes, shown under the reactor in amber.",
+      "html": "<div class=\"ds-ask\"><svg viewBox=\"0 0 16 16\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"><circle cx=\"8\" cy=\"8\" r=\"6.25\"/><path d=\"M6.2 6.3a1.85 1.85 0 1 1 2.6 1.7c-.5.25-.8.6-.8 1.1v.4\"/><circle cx=\"8\" cy=\"11.4\" r=\".8\" fill=\"currentColor\" stroke=\"none\"/></g></svg><div><p>Lila would like to run a command.</p><code>uv run pytest -q</code></div></div>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-ask{display:grid;grid-template-columns:1.4rem minmax(0,1fr);gap:.2rem .85rem;padding:.75rem .15rem .8rem;border-block:1px solid rgb(255 184 77 / .55);background:var(--ground);font-family:var(--sans)}.ds-ask svg{width:1.3rem;height:1.3rem;margin-top:.15rem;color:var(--amber)}.ds-ask p{margin:0;font-size:1.12rem;line-height:1.4;color:var(--ink)}.ds-ask code{display:block;margin-top:.45rem;font:.82rem/1.45 var(--mono);color:#ffdcab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}"
+    },
+    {
+      "name": "Context Legend",
+      "kind": "custom",
+      "refersTo": "legend-swatch",
+      "description": "Context window share by category, matching the reactor's context arc.",
+      "html": "<ul class=\"ds-parts\"><li><i style=\"--c:#9b7bea\"></i>System prompt<span>3.1k</span></li><li><i style=\"--c:#c9a7ff\"></i>System tools<span>14k</span></li><li><i style=\"--c:#e39bf0\"></i>MCP tools<span>1.2k</span></li><li><i style=\"--c:#efe2ff\"></i>Messages<span>26k</span></li><li><i class=\"reserve\"></i>Autocompact buffer<span>33k</span></li></ul>",
+      "css": ":host{--ground:#0a0612;--rule:rgb(201 167 255 / .13);--rule-strong:rgb(201 167 255 / .3);--lilac:#c9a7ff;--lilac-hi:#efe2ff;--violet:#a98bf0;--you:#8fb4ff;--you-ink:#cddbff;--amber:#ffb84d;--mint:#7fe0bd;--coral:#ff8794;--ink:#f2ebff;--ink-2:#bdafdc;--ink-3:#9686bd;--sans:Saira,system-ui,sans-serif;--mono:'Cascadia Mono',ui-monospace,Consolas,monospace}.ds-parts{list-style:none;margin:0;padding:1rem;display:flex;flex-wrap:wrap;gap:.35rem 1.1rem;background:var(--ground);font-family:var(--sans)}.ds-parts li{display:inline-flex;align-items:center;gap:.45rem;font-size:.82rem;color:var(--ink-2);white-space:nowrap}.ds-parts i{width:.6rem;height:.6rem;border-radius:2px;background:var(--c)}.ds-parts i.reserve{background:repeating-linear-gradient(135deg,#8b7bb8 0 1.5px,transparent 1.5px 3.5px);outline:1px solid #8b7bb8;outline-offset:-1px}.ds-parts span{color:var(--ink-3);font-size:.78rem;font-variant-numeric:tabular-nums;font-stretch:112%}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lilac Reactor",
+    "overview": "One instrument at the centre of a dark room. A violet-black ground is lit only by lilac light, and the light comes from a circle whose rings are live instruments: an outer tick scale, the context window as a segmented arc, background helpers as satellites on a dotted orbit, a circular trace of who is speaking and how loud, and a core ring that breathes with the voice. Everything around the reactor is flat type on hairline rules: captions on the left, helpers and activity on the right, a readout strip along the bottom, a thin header on top.\n\nThe system is a read-only HUD, dense up close and legible from across a desk. Light means something is true right now: the accent colour is the voice state, glow comes only from the reactor's live parts, and motion only plays while the thing it shows is happening. Rejected outright by the user and the build: cards, glass, Jarvis cyan.",
+    "keyCharacteristics": [
+      "Violet-black ground, lilac light, one state accent at a time.",
+      "One variable family (Saira) used across its width axis for every role except commands and paths.",
+      "Hairline rules divide space; nothing floats on a container.",
+      "The reactor is canvas-drawn, scales with its box, and carries all the ambient motion.",
+      "Authored 16px-grid stroke icons at 1.5px, never glyphs."
+    ],
+    "rules": [
+      {
+        "name": "The State Is The Light Rule",
+        "body": "One accent is live at a time and it is the voice state: connecting faint ink, listening lilac, hearing periwinkle, thinking violet, speaking lilac light, asking amber. The reactor, the state word and nothing else take it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Signals Mean One Thing Rule",
+        "body": "Amber is only a question, mint only done or live, coral only failed or offline. Never use them for decoration or emphasis.",
+        "section": "colors"
+      },
+      {
+        "name": "The Width Axis Rule",
+        "body": "Hierarchy comes from Saira's width before size: labels at 75%, reading text at 100%, numerals at 112% with tabular figures, the wordmark at 125%.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Is Evidence Rule",
+        "body": "Monospace appears only for literal machine text: commands, paths, search queries, URLs. Never for labels or numbers.",
+        "section": "typography"
+      },
+      {
+        "name": "The Live Light Rule",
+        "body": "Glow is emitted only by parts of the reactor that are measuring something live. Static UI never glows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do take every colour from the root tokens and route state through the single accent variable.",
+      "Do divide space with 1px hairlines (rule) and the shared gutter.",
+      "Do set labels in condensed, uppercase, 0.16em-tracked Saira and numerals in expanded tabular Saira.",
+      "Do draw new icons on the 16px grid with 1.5px round strokes in currentColor, added to the sprite.",
+      "Do stop motion that represents activity the moment the activity stops, offline included.",
+      "Do keep long values to one line with an ellipsis and the full value in a tooltip."
+    ],
+    "donts": [
+      "Don't put content on cards, glass or blurred panels, or give any surface a drop shadow.",
+      "Don't use cyan or any non-lilac light for the reactor.",
+      "Don't use amber, mint or coral for anything but question, done/live and failed/offline.",
+      "Don't add a second type family; mono is for literal machine text only.",
+      "Don't draw a progress bar or percentage for helpers; they report activity, not completion.",
+      "Don't set an uppercase label above a heading as an eyebrow; labels name fields, sections and speakers."
+    ]
+  }
+}

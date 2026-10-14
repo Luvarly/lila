@@ -4,10 +4,10 @@ QUIET = b"\x00" * 960
 LOUD = b"\x01" * 960
 
 
-def feed(seg, pattern):
+def feed(seg, pattern, **kw):
     events = []
     for voiced in pattern:
-        events += seg.process(LOUD if voiced else QUIET, voiced)
+        events += seg.process(LOUD if voiced else QUIET, voiced, **kw)
     return events
 
 
@@ -39,6 +39,12 @@ def test_one_short_word_is_an_utterance():
 
 def test_a_click_never_starts():
     assert feed(UtteranceSegmenter(), [True] * 3 + [False] * 40) == []
+
+
+def test_over_speech_a_short_burst_needs_more_voice_to_start():
+    burst = [True] * 8 + [False] * 40  # 240 ms: a word, but only a thud while she is talking
+    assert feed(UtteranceSegmenter(), burst, need=10) == []
+    assert feed(UtteranceSegmenter(), burst) != []
 
 
 def test_scattered_noise_never_starts():
