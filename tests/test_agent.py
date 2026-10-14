@@ -7,6 +7,8 @@ from claude_agent_sdk import (
     PermissionResultDeny,
     ResultMessage,
     StreamEvent,
+    TaskNotificationMessage,
+    TaskStartedMessage,
     ToolPermissionContext,
     ToolUseBlock,
 )
@@ -64,6 +66,23 @@ def text_block(*deltas, parent=None):
         ],
         event({"type": "content_block_stop", "index": 0}, parent),
     ]
+
+
+MESSAGE_START = event({"type": "message_start"})
+
+
+def agent_started(task_id):
+    return TaskStartedMessage(
+        subtype="task_started", data={}, task_id=task_id, description="d", uuid="u",
+        session_id="s", task_type="local_agent",
+    )  # fmt: skip
+
+
+def agent_done(task_id):
+    return TaskNotificationMessage(
+        subtype="task_notification", data={}, task_id=task_id, status="completed",
+        output_file="", summary="", uuid="u", session_id="s",
+    )  # fmt: skip
 
 
 def tool(id_, name, **tool_input):
@@ -282,15 +301,63 @@ async def test_input_during_active_turn_is_queued_then_sent():
         assert client.queries == ["first", "second third"] and agent.turn_active
 
 
-async def test_injected_result_does_not_end_the_turn():
+async def test_claude_reporting_back_on_its_own_is_a_turn():
     async with running() as (agent, client, speech):
-        await agent.handle_text("hi")
-        client.push(result(origin={"kind": "task-notification"}))
+        client.push(MESSAGE_START, *text_block("The research is done."))
         await settle()
         assert agent.turn_active
-        client.push(result(origin={"kind": "human"}))
+        client.push(result(origin={"kind": "task-notification"}))
         await settle()
         assert not agent.turn_active
+        agent.say("Anything else?")  # the speech queue isn't stuck on that reply
+        await settle()
+        assert speech.spoken == ["The research is done.", "Anything else?"]
+
+
+async def test_reply_socket_opens_before_the_first_words():
+    async with running() as (agent, client, speech):
+        await agent.handle_text("hi")
+        await settle()
+        assert speech.calls == 1
+        client.push(*text_block("Hello."), result())
+        await settle()
+        assert speech.calls == 1 and speech.spoken == ["Hello."]
+
+
+async def test_barge_in_spares_background_agents():
+    async with running() as (agent, client, speech):
+        await agent.handle_text("research this, then summarize")
+        client.push(agent_started("a1"), MESSAGE_START)
+        start, *deltas, stop = text_block("Meanwhile, the ", "weather is ", "sunny.")
+        client.push(start, deltas[0])
+        await settle()
+        user_says(agent, speech, "never mind that")
+        await settle()
+        assert client.interrupts == 0  # an interrupt would kill the agent
+        assert client.queries == ["research this, then summarize", "never mind that"]
+        client.push(deltas[1], deltas[2], stop, tool("t1", "Read", file_path="a.py"))
+        client.push(MESSAGE_START, *text_block("Okay, dropped it."), result())
+        await settle()
+        assert speech.spoken == ["Okay, dropped it."]
+        assert not agent.turn_active
+        client.push(agent_done("a1"))
+        await agent.handle_text("next")
+        await settle()
+        interrupting = asyncio.create_task(agent.handle_text("stop"))
+        await settle()
+        assert client.interrupts == 1  # nothing left to spare
+        client.push(result())
+        await interrupting
+
+
+async def test_a_helper_asks_as_the_helper():
+    async with running() as (agent, client, speech):
+        helper = ToolPermissionContext(agent_id="a1")
+        decision = asyncio.create_task(agent.can_use_tool("Write", {"file_path": "/a.txt"}, helper))
+        await settle()
+        assert speech.spoken == ["My helper would like to write the file a.txt. Is that okay?"]
+        user_says(agent, speech, "yes")
+        assert isinstance(await decision, PermissionResultAllow)
 
 
 async def test_error_result_is_spoken():

@@ -17,6 +17,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import Any
 
 from claude_agent_sdk import (
+    TERMINAL_TASK_STATUSES,
     AssistantMessage,
     ClaudeAgentOptions,
     PermissionResultAllow,
@@ -24,6 +25,9 @@ from claude_agent_sdk import (
     ResultMessage,
     StreamEvent,
     SystemMessage,
+    TaskNotificationMessage,
+    TaskStartedMessage,
+    TaskUpdatedMessage,
     ToolPermissionContext,
     ToolUseBlock,
 )
@@ -42,6 +46,7 @@ FLUSH = ""  # in a job's text: say everything so far now (before a tool runs)
 INTERRUPT_TIMEOUT = 10.0
 IDLE_CLOSE = 15.0  # close a reply's Fish socket after this long without text; reopen for more
 MEMORY_DIR = "~/.lila/memory"  # Claude Code's own auto-memory, shared by every working folder
+AGENT_TASKS = ("local_agent", "local_workflow")  # the task types the SDK itself waits for
 
 PERSONALITY = """\
 # Who you are
@@ -64,6 +69,7 @@ You are talking with the user through a voice interface. Their messages come fro
 - Say numbers, dates and units the way a person would say them.
 - For long results, give the gist in two or three sentences and offer more detail.
 - Before a task that takes a while, say in one short sentence what you are about to do.
+- For work that will take more than a minute or so, such as research, a long search or a bigger change, start a background agent (the Agent tool with run_in_background) so the user can keep talking with you, and say you'll let them know. When it reports back, give them the result in a sentence or two.
 """  # noqa: E501
 
 EXPRESSIVE_PROMPT = """\
@@ -165,7 +171,9 @@ def describe_tool(name: str, tool_input: dict[str, Any]) -> str:
 
 
 def screen_summary(tool_input: dict[str, Any]) -> str:
-    for key in ("command", "file_path", "notebook_path", "url", "pattern", "query", "path"):
+    for key in (
+        "command", "file_path", "notebook_path", "url", "pattern", "query", "path", "description",
+    ):  # fmt: skip
         if tool_input.get(key):
             return str(tool_input[key])[:200]
     if not tool_input:
@@ -220,6 +228,8 @@ class VoiceAgent:
         self._queued: list[str] = []
         self._permission: asyncio.Future[str] | None = None
         self._approval_lock = asyncio.Lock()
+        self._agents: set[str] = set()  # running agent tasks; an interrupt would kill them
+        self._hush = False  # don't say the rest of the message the user talked over
 
         self._jobs: asyncio.Queue[_Job] = asyncio.Queue()
         self._current: _Job | None = None
@@ -241,6 +251,7 @@ class VoiceAgent:
         """Use a (re)connected client. A turn the old connection was running is over."""
         self.client = client
         self._stale_results = 0
+        self._agents.clear()  # they ended with the old connection
         if self.turn_active:
             self._end_turn()
 
@@ -343,22 +354,29 @@ class VoiceAgent:
 
     def _begin_turn(self, text: str) -> Awaitable[None]:
         # State is set synchronously so nothing can start a second turn in between.
+        self._start_turn()
+        self._t_query = time.monotonic()
+        return self._send(text)
+
+    def _start_turn(self) -> None:
         self.turn_active = True
         self.turn_done.clear()
         self.muted = False
         self._spoke_since_tool = False
         self._last_progress = None
-        self._t_query = time.monotonic()
+        self._t_query = None
         self._t_first_delta = None
-        return self._send(text)
+        if self._turn_job is None:
+            # Queued now so its Fish socket opens while Claude thinks (that takes ~0.5 s).
+            self._turn_job = _Job()
+            self._jobs.put_nowait(self._turn_job)
 
     async def _send(self, text: str) -> None:
         try:
             await self.client.query(text)
         except Exception as e:
             self._println(error(f"(couldn't send that to Claude Code: {e})"))
-            self.turn_active = False
-            self.turn_done.set()
+            self._end_turn()
 
     def _end_turn(self) -> None:
         self._close_block()
@@ -377,11 +395,17 @@ class VoiceAgent:
 
     async def _barge_in(self) -> None:
         """New words from the user: stop speaking, and interrupt Claude if it's mid-turn."""
+        self._close_block()  # an unfinished sentence goes with the speech being stopped
         self._stop_speech()
         if not self.turn_active:
             return
-        self.muted = True
         self._println(note("(interrupted)"))
+        if self._agents:
+            # An interrupt would kill the background agents too. Claude reads the new words at
+            # its next step instead; until then, the rest of what it was saying goes unsaid.
+            self._hush = True
+            return
+        self.muted = True
         try:
             await self.client.interrupt()
         except Exception as e:
@@ -415,7 +439,8 @@ class VoiceAgent:
             if self.muted:
                 return PermissionResultDeny(message="The user interrupted.", interrupt=True)
             self._println(ask_line(tool_name, screen_summary(tool_input)))
-            question = f"I'd like to {describe_tool(tool_name, tool_input)}. Is that okay?"
+            who = "My helper would" if context.agent_id else "I'd"
+            question = f"{who} like to {describe_tool(tool_name, tool_input)}. Is that okay?"
             for prompt in (question, REPROMPT):
                 self._permission = asyncio.get_running_loop().create_future()
                 try:
@@ -454,6 +479,12 @@ class VoiceAgent:
                 return
             event = message.event
             kind = event.get("type")
+            if kind == "message_start":
+                self._hush = False  # a new message answers what the user said over the last one
+                if not self.turn_active:
+                    self._start_turn()  # Claude began on its own: a background task reported back
+            if self._hush:
+                return
             block_type = event.get("content_block", {}).get("type")
             delta = event.get("delta", {})
             if kind == "content_block_start" and block_type == "text":
@@ -469,13 +500,19 @@ class VoiceAgent:
                 if isinstance(block, ToolUseBlock) and block.id not in self._seen_tools:
                     self._seen_tools.add(block.id)
                     self._on_tool(block)
+        elif isinstance(message, TaskStartedMessage):
+            if message.task_type in AGENT_TASKS:
+                self._agents.add(message.task_id)
+        elif isinstance(message, (TaskNotificationMessage, TaskUpdatedMessage)):
+            if message.status in TERMINAL_TASK_STATUSES:
+                self._agents.discard(message.task_id)
         elif isinstance(message, SystemMessage):
             if message.subtype == "init":
                 self.session_id = message.data.get("session_id", self.session_id)
                 log.debug("model: %s", message.data.get("model"))
         elif isinstance(message, ResultMessage):
-            if message.origin and message.origin.get("kind") != "human":
-                return  # an injected turn (e.g. a task notification), not our prompt
+            # Every result ends what Claude was doing, also a turn it started itself. If more
+            # follows (words it hadn't read yet), its message_start begins a new turn.
             self.session_id = message.session_id
             if self._stale_results:
                 self._stale_results -= 1  # the turn we already ended locally
@@ -522,6 +559,7 @@ class VoiceAgent:
         phrase = _PROGRESS.get(block.name, "Working on it.")
         if (
             phrase
+            and not self._hush
             and not self._spoke_since_tool
             and (block.name in self.settings.allowed_tools or block.name in TOOL_NAMES)
             and phrase != self._last_progress
@@ -570,13 +608,17 @@ class VoiceAgent:
                 self._synth_task.cancel()
 
     async def _speak(self, job: _Job) -> None:
-        """Opens a Fish socket once there's text, and again after an idle close or an error."""
+        """Opens a Fish socket at once, and again for more text after an idle close or an error."""
+        first: str | None = None  # the first socket opens before there's anything to say
+        opened = False
         while not job.done:
-            first = await job.chunks.get()
-            if first is None:
-                return
-            if first == FLUSH or job.cancelled:
-                continue
+            if opened:
+                first = await job.chunks.get()
+                if first is None:
+                    return
+                if first == FLUSH or job.cancelled:
+                    continue
+            opened = True
             try:
                 async for fmt, pcm in self.speech.synthesize(self._texts(job, first)):
                     if job.cancelled:
@@ -590,12 +632,13 @@ class VoiceAgent:
                 self._println(error(f"(error: text-to-speech failed: {e})"))
             self.speaker.drain()
 
-    async def _texts(self, job: _Job, first: str) -> AsyncIterator[str]:
-        chunk: str | None = first
+    async def _texts(self, job: _Job, first: str | None) -> AsyncIterator[str]:
+        chunk = first
         while True:
             if job.cancelled:
                 raise asyncio.CancelledError
-            yield chunk
+            if chunk is not None:  # None only for a socket opened ahead of the text
+                yield chunk
             try:
                 chunk = await asyncio.wait_for(job.chunks.get(), IDLE_CLOSE)
             except asyncio.TimeoutError:

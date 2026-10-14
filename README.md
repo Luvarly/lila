@@ -5,6 +5,7 @@ A personal voice assistant. You talk, an agent works in a folder on your machine
 - **Hearing:** Fish Audio speech-to-text (`transcribe-1-pro`). Input is turn-based: you speak, pause, and what you said is transcribed.
 - **Speaking:** Fish Audio streaming text-to-speech (`s2.1-pro`). Speech starts before the answer is finished, and you can talk over it to interrupt.
 - **Doing:** the agent can read, search and change files and use the web. Tools that aren't pre-approved are asked about out loud; answer yes or no.
+- **Background work:** longer jobs, like research or a bigger change, go to a background helper, so you can keep talking. Lila tells you the result when it's done. If the helper needs approval, Lila asks out loud: "My helper would like to…".
 - **Screen:** your transcript, the full answer and every tool call are printed. Code, commands and paths appear on screen and are never read aloud.
 - **Memory:** Lila remembers what's worth knowing about you between conversations, such as your name, the people and projects you mention and how you like things done. It's kept as plain Markdown files in `~/.lila/memory`, shared by every working folder, so you can read, edit or delete them any time. This is Claude Code's own memory feature, pointed at a folder of Lila's.
 - **Personality:** warm, quick and to the point, with a dry sense of humour. Tell it how you'd rather it be, and it remembers that too.
@@ -58,10 +59,10 @@ Lila reads `.env` from the current folder (or a parent folder). Real environment
 
 - **Use headphones.** With speakers, the assistant can hear itself. Barge-in then needs a loud voice (`--barge-in-rms`), and `--no-barge-in` makes it stop listening while it talks.
 - **It listens until you pause.** Fish has no live speech-to-text, so an utterance counts as finished after about 0.7 s of silence (`--end-silence-ms`). To save time, Lila already starts transcribing after 0.4 s and throws that away if you keep talking.
-- **Talking over it** pauses the voice at once. Claude is only interrupted once your words are transcribed; a cough or a click just lets it carry on.
+- **Talking over it** pauses the voice at once. Claude is only interrupted once your words are transcribed; a cough or a click just lets it carry on. While a background helper is working, Claude isn't interrupted, because that would stop the helper too. Lila goes quiet instead, and Claude reads what you said at its next step.
 - **Fish usage** (speech-to-text and text-to-speech) is billed to your Fish account. A short pause mid-sentence costs one extra speech-to-text request.
 - **Claude usage** is billed to whatever Claude Code is signed in with. Lila prints which sign-in Claude Code will use at startup.
-- **If Claude Code stops**, Lila reconnects to the same conversation, up to three times in a row. Whatever Claude was doing at that moment is lost.
+- **If Claude Code stops**, Lila reconnects to the same conversation, up to three times in a row. Whatever Claude was doing at that moment is lost, background helpers included. Quitting stops them too.
 - **Screenshots and clipboard contents go to Claude**, like everything else you say. Clear anything private before you ask.
 - When you quit with Ctrl+C, Lila prints the session id; `--resume <id>` continues that conversation.
 
